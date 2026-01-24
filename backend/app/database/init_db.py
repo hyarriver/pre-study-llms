@@ -1,9 +1,11 @@
 """
 数据库初始化
 """
+import json
+from pathlib import Path
 from app.database.base import Base
 from app.database.session import engine
-from app.models import Chapter, Progress, Note, User
+from app.models import Chapter, Progress, Note, User, Question, ExamRecord
 from app.database.session import SessionLocal
 from datetime import datetime
 
@@ -114,8 +116,59 @@ def init_db():
             
             db.commit()
             print("章节数据初始化完成")
+        
+        # 初始化试题数据
+        if db.query(Question).count() == 0:
+            init_exam_questions(db)
+            
     except Exception as e:
         print(f"初始化数据库时出错: {e}")
         db.rollback()
     finally:
         db.close()
+
+
+def init_exam_questions(db):
+    """初始化考试试题数据"""
+    # 试题JSON文件路径
+    questions_file = Path(__file__).parent.parent.parent.parent / "documents" / "exam_questions.json"
+    
+    if not questions_file.exists():
+        print(f"试题文件不存在: {questions_file}")
+        return
+    
+    try:
+        with open(questions_file, 'r', encoding='utf-8') as f:
+            questions_data = json.load(f)
+        
+        # 获取章节映射
+        chapters = db.query(Chapter).all()
+        chapter_map = {f"chapter{c.chapter_number}": c.id for c in chapters}
+        
+        total_questions = 0
+        for chapter_key, questions in questions_data.items():
+            chapter_id = chapter_map.get(chapter_key)
+            if not chapter_id:
+                print(f"未找到章节: {chapter_key}")
+                continue
+            
+            for idx, q in enumerate(questions):
+                question = Question(
+                    chapter_id=chapter_id,
+                    question_type=q["type"],
+                    content=q["content"],
+                    options=q.get("options"),
+                    answer=q["answer"],
+                    explanation=q.get("explanation"),
+                    score=10,  # 默认10分
+                    order_index=idx + 1,
+                )
+                db.add(question)
+                total_questions += 1
+        
+        db.commit()
+        print(f"试题数据初始化完成，共导入 {total_questions} 道试题")
+        
+    except Exception as e:
+        print(f"初始化试题数据时出错: {e}")
+        db.rollback()

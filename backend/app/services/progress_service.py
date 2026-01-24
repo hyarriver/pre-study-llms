@@ -53,6 +53,8 @@ class ProgressService:
             completed=bool(progress.completed),
             last_accessed=progress.last_accessed,
             study_time_seconds=progress.study_time_seconds or 0,
+            exam_score=progress.exam_score or 0.0,
+            exam_attempts=progress.exam_attempts or 0,
         )
     
     def update(
@@ -87,6 +89,20 @@ class ProgressService:
             progress.study_time_seconds = (progress.study_time_seconds or 0) + progress_update.study_time_seconds
             # 同时更新每日学习记录
             self._update_daily_record(user_id, progress_update.study_time_seconds)
+        if progress_update.exam_score is not None:
+            progress.exam_score = progress_update.exam_score
+        if progress_update.exam_attempts is not None:
+            progress.exam_attempts = progress_update.exam_attempts
+        
+        # 重新计算综合完成度
+        progress.completion_percentage = self._calculate_completion(
+            progress.study_time_seconds or 0,
+            progress.exam_score or 0.0
+        )
+        
+        # 如果综合完成度达到100%，标记为已完成
+        if progress.completion_percentage >= 100:
+            progress.completed = 1
         
         progress.last_accessed = datetime.utcnow()
         
@@ -100,7 +116,28 @@ class ProgressService:
             completed=bool(progress.completed),
             last_accessed=progress.last_accessed,
             study_time_seconds=progress.study_time_seconds or 0,
+            exam_score=progress.exam_score or 0.0,
+            exam_attempts=progress.exam_attempts or 0,
         )
+    
+    def _calculate_completion(
+        self, study_time_seconds: int, exam_score: float, chapter_target_time: int = 3600
+    ) -> float:
+        """
+        计算综合完成度
+        - 学习时长权重: 50%（达到目标时长为满分）
+        - 考核成绩权重: 50%
+        
+        Args:
+            study_time_seconds: 学习时长（秒）
+            exam_score: 考核成绩（0-100）
+            chapter_target_time: 每章目标学习时长（默认1小时=3600秒）
+        
+        Returns:
+            综合完成度（0-100）
+        """
+        time_progress = min(100, (study_time_seconds / chapter_target_time) * 100)
+        return round((time_progress * 0.5) + (exam_score * 0.5), 1)
     
     def _update_daily_record(self, user_id: str, added_seconds: int) -> None:
         """更新每日学习记录"""
@@ -135,6 +172,8 @@ class ProgressService:
                 completed=bool(p.completed),
                 last_accessed=p.last_accessed,
                 study_time_seconds=p.study_time_seconds or 0,
+                exam_score=p.exam_score or 0.0,
+                exam_attempts=p.exam_attempts or 0,
             )
             for p in progress_list
         ]
@@ -177,6 +216,8 @@ class ProgressService:
                     completion_percentage=progress.completion_percentage,
                     completed=bool(progress.completed),
                     study_time_seconds=progress.study_time_seconds or 0,
+                    exam_score=progress.exam_score or 0.0,
+                    exam_attempts=progress.exam_attempts or 0,
                     last_accessed=progress.last_accessed,
                 ))
             else:
@@ -187,6 +228,8 @@ class ProgressService:
                     completion_percentage=0.0,
                     completed=False,
                     study_time_seconds=0,
+                    exam_score=0.0,
+                    exam_attempts=0,
                     last_accessed=None,
                 ))
         

@@ -1,0 +1,690 @@
+{
+  "chapter1": [
+    {
+      "type": "single_choice",
+      "content": "Transformers库的主要用途是什么？",
+      "options": [
+        {"key": "A", "value": "图像处理"},
+        {"key": "B", "value": "下载和训练预训练模型"},
+        {"key": "C", "value": "数据库管理"},
+        {"key": "D", "value": "网络通信"}
+      ],
+      "answer": "B",
+      "explanation": "Transformers提供API和工具来下载和训练预训练模型，支持NLP、CV、音频等多种任务。"
+    },
+    {
+      "type": "single_choice",
+      "content": "在微调预训练模型时，通常使用什么方式创建Python虚拟环境？",
+      "options": [
+        {"key": "A", "value": "pip create"},
+        {"key": "B", "value": "conda create"},
+        {"key": "C", "value": "python create"},
+        {"key": "D", "value": "venv create"}
+      ],
+      "answer": "B",
+      "explanation": "教程中推荐使用conda create -n llm python=3.9来创建虚拟环境。"
+    },
+    {
+      "type": "single_choice",
+      "content": "Gradio Spaces主要用于什么目的？",
+      "options": [
+        {"key": "A", "value": "训练模型"},
+        {"key": "B", "value": "搭建在线Demo"},
+        {"key": "C", "value": "数据存储"},
+        {"key": "D", "value": "版本控制"}
+      ],
+      "answer": "B",
+      "explanation": "Gradio Spaces用于搭建和部署在线Demo，方便用户测试和体验模型。"
+    },
+    {
+      "type": "true_false",
+      "content": "使用预训练模型可以减少计算消耗和碳排放。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "预训练模型可以避免从头训练，节省时间和计算资源，减少碳排放。"
+    },
+    {
+      "type": "single_choice",
+      "content": "解耦可定制版本的文本分类项目包含哪些主要文件？",
+      "options": [
+        {"key": "A", "value": "main.py, utils_data.py, modeling_bert.py"},
+        {"key": "B", "value": "train.py, test.py, model.py"},
+        {"key": "C", "value": "app.py, config.py, data.py"},
+        {"key": "D", "value": "run.py, load.py, save.py"}
+      ],
+      "answer": "A",
+      "explanation": "解耦版本包含main.py主程序、utils_data.py数据处理文件、modeling_bert.py模型文件。"
+    },
+    {
+      "type": "true_false",
+      "content": "BERT模型只能用于文本分类任务。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "false",
+      "explanation": "BERT是通用预训练模型，可用于文本分类、问答、命名实体识别等多种NLP任务。"
+    }
+  ],
+  "chapter2": [
+    {
+      "type": "single_choice",
+      "content": "什么是零样本提示（Zero-shot Prompting）？",
+      "options": [
+        {"key": "A", "value": "提供多个示例后提问"},
+        {"key": "B", "value": "只给出目标指令提示，不提供示例"},
+        {"key": "C", "value": "使用随机提示"},
+        {"key": "D", "value": "不使用任何提示"}
+      ],
+      "answer": "B",
+      "explanation": "零样本提示是指只给出目标指令，不提供任务范例的提示方式。"
+    },
+    {
+      "type": "single_choice",
+      "content": "思维链（Chain of Thought）提示的基本思路是什么？",
+      "options": [
+        {"key": "A", "value": "直接给出答案"},
+        {"key": "B", "value": "模拟人类思考过程，分解成中间步骤"},
+        {"key": "C", "value": "使用多个模型协作"},
+        {"key": "D", "value": "随机生成多个答案"}
+      ],
+      "answer": "B",
+      "explanation": "思维链提示模拟人类的思考过程，将多步骤推理问题分解成一系列中间步骤。"
+    },
+    {
+      "type": "single_choice",
+      "content": "自洽性（Self-Consistency）方法如何提升推理结果？",
+      "options": [
+        {"key": "A", "value": "只生成一个答案"},
+        {"key": "B", "value": "多次采样，选择出现最多的答案"},
+        {"key": "C", "value": "使用更大的模型"},
+        {"key": "D", "value": "增加训练数据"}
+      ],
+      "answer": "B",
+      "explanation": "自洽性方法通过多次采样生成多个推理路径，最终选择出现最多的答案。"
+    },
+    {
+      "type": "true_false",
+      "content": "在少样本提示中，提供错误的示例不会影响模型的输出结果。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "false",
+      "explanation": "研究表明错误示例会影响模型输出，但影响程度取决于具体任务和模型。"
+    },
+    {
+      "type": "single_choice",
+      "content": "程序思维链（PoT）与自然语言思维链（CoT）的主要区别是什么？",
+      "options": [
+        {"key": "A", "value": "PoT使用代码表示推理步骤"},
+        {"key": "B", "value": "PoT不需要推理"},
+        {"key": "C", "value": "CoT使用代码"},
+        {"key": "D", "value": "没有区别"}
+      ],
+      "answer": "A",
+      "explanation": "程序思维链使用Python等编程语言表示推理步骤，便于执行和验证。"
+    },
+    {
+      "type": "true_false",
+      "content": "GSM8K是一个用于评估数学推理能力的数据集。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "GSM8K是OpenAI发布的小学数学推理数据集，用于评估模型的数学推理能力。"
+    }
+  ],
+  "chapter3": [
+    {
+      "type": "single_choice",
+      "content": "EasyEdit框架的四个主要组件是什么？",
+      "options": [
+        {"key": "A", "value": "Editor, Method, Evaluate, Trainer"},
+        {"key": "B", "value": "Model, Data, Train, Test"},
+        {"key": "C", "value": "Input, Output, Process, Save"},
+        {"key": "D", "value": "Load, Edit, Save, Export"}
+      ],
+      "answer": "A",
+      "explanation": "EasyEdit包含Editor（编辑场景）、Method（编辑方法）、Evaluate（评估方法）、Trainer（训练模块）。"
+    },
+    {
+      "type": "single_choice",
+      "content": "知识编辑的评估维度中，哪个用于衡量编辑是否影响无关知识？",
+      "options": [
+        {"key": "A", "value": "可靠性（Reliability）"},
+        {"key": "B", "value": "通用性（Generality）"},
+        {"key": "C", "value": "局部性（Locality）"},
+        {"key": "D", "value": "可移植性（Portability）"}
+      ],
+      "answer": "C",
+      "explanation": "局部性（Locality）用于评估编辑是否对无关知识产生影响，理想情况下应只修改目标知识。"
+    },
+    {
+      "type": "single_choice",
+      "content": "ROME方法主要通过什么方式实现知识编辑？",
+      "options": [
+        {"key": "A", "value": "重新训练整个模型"},
+        {"key": "B", "value": "修改模型内部表示"},
+        {"key": "C", "value": "添加外部知识库"},
+        {"key": "D", "value": "修改输入提示"}
+      ],
+      "answer": "B",
+      "explanation": "ROME方法通过直接修改模型内部的表示（如MLP层）来实现知识编辑。"
+    },
+    {
+      "type": "true_false",
+      "content": "MEMIT方法支持同时编辑多条知识。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "MEMIT是ROME的扩展，支持批量编辑多条知识。"
+    },
+    {
+      "type": "single_choice",
+      "content": "Counterfact数据集主要用于评估什么？",
+      "options": [
+        {"key": "A", "value": "文本生成质量"},
+        {"key": "B", "value": "知识编辑效果"},
+        {"key": "C", "value": "情感分析准确率"},
+        {"key": "D", "value": "翻译质量"}
+      ],
+      "answer": "B",
+      "explanation": "Counterfact是知识编辑领域的基准数据集，用于评估编辑方法的效果。"
+    }
+  ],
+  "chapter4": [
+    {
+      "type": "single_choice",
+      "content": "SFT（Supervised Finetuning）在数学推理任务中的作用是什么？",
+      "options": [
+        {"key": "A", "value": "无监督学习"},
+        {"key": "B", "value": "基于标注数据微调模型"},
+        {"key": "C", "value": "强化学习"},
+        {"key": "D", "value": "数据增强"}
+      ],
+      "answer": "B",
+      "explanation": "SFT是监督微调，使用标注的数学推理数据来训练模型学习推理能力。"
+    },
+    {
+      "type": "single_choice",
+      "content": "数据蒸馏的主要目的是什么？",
+      "options": [
+        {"key": "A", "value": "压缩数据大小"},
+        {"key": "B", "value": "从大模型生成的数据中学习"},
+        {"key": "C", "value": "加密数据"},
+        {"key": "D", "value": "数据可视化"}
+      ],
+      "answer": "B",
+      "explanation": "数据蒸馏是从大模型（如DeepSeek-R1）生成的高质量数据中学习复杂推理技能。"
+    },
+    {
+      "type": "true_false",
+      "content": "DeepSeek-R1生成的回复包含反思（reflection）和验算（verification）等推理技能。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "DeepSeek-R1的回复展示了反思、验算等高级推理技能，可用于训练其他模型。"
+    },
+    {
+      "type": "single_choice",
+      "content": "DeepMath-103K数据集主要用于什么任务？",
+      "options": [
+        {"key": "A", "value": "图像分类"},
+        {"key": "B", "value": "数学推理微调"},
+        {"key": "C", "value": "语音识别"},
+        {"key": "D", "value": "机器翻译"}
+      ],
+      "answer": "B",
+      "explanation": "DeepMath-103K是专门用于数学推理任务的数据集，包含数学问题和推理过程。"
+    },
+    {
+      "type": "true_false",
+      "content": "通过SFT微调后的小模型可以获得类似大模型的数学推理能力。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "数据蒸馏和SFT可以将大模型的推理能力迁移到小模型，实现「迷你R1」效果。"
+    }
+  ],
+  "chapter5": [
+    {
+      "type": "single_choice",
+      "content": "模型水印的主要目的是什么？",
+      "options": [
+        {"key": "A", "value": "提高模型准确率"},
+        {"key": "B", "value": "在生成内容中嵌入可检测的标记"},
+        {"key": "C", "value": "压缩模型大小"},
+        {"key": "D", "value": "加速推理速度"}
+      ],
+      "answer": "B",
+      "explanation": "模型水印用于在AI生成的内容中嵌入人类不可见但可检测的标记，用于溯源。"
+    },
+    {
+      "type": "single_choice",
+      "content": "z-score在水印检测中的作用是什么？",
+      "options": [
+        {"key": "A", "value": "计算文本长度"},
+        {"key": "B", "value": "衡量文本的水印强度"},
+        {"key": "C", "value": "计算模型参数"},
+        {"key": "D", "value": "评估文本质量"}
+      ],
+      "answer": "B",
+      "explanation": "z-score用于计算文本的水印强度，通过与阈值比较判断是否含有水印。"
+    },
+    {
+      "type": "single_choice",
+      "content": "以下哪个不是教程中介绍的水印算法？",
+      "options": [
+        {"key": "A", "value": "X-SIR"},
+        {"key": "B", "value": "KGW"},
+        {"key": "C", "value": "SIR"},
+        {"key": "D", "value": "BERT"}
+      ],
+      "answer": "D",
+      "explanation": "教程介绍了X-SIR、SIR、KGW三种水印算法，BERT是语言模型不是水印算法。"
+    },
+    {
+      "type": "true_false",
+      "content": "ROC曲线和AUC是评估水印检测性能的重要指标。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "ROC曲线展示不同阈值下的检测性能，AUC衡量整体检测效果。"
+    },
+    {
+      "type": "single_choice",
+      "content": "Paraphrase攻击对水印的影响是什么？",
+      "options": [
+        {"key": "A", "value": "增强水印"},
+        {"key": "B", "value": "可能破坏或削弱水印"},
+        {"key": "C", "value": "没有影响"},
+        {"key": "D", "value": "使水印更容易检测"}
+      ],
+      "answer": "B",
+      "explanation": "Paraphrase（改写）攻击通过重新表述文本可能破坏或削弱嵌入的水印。"
+    }
+  ],
+  "chapter6": [
+    {
+      "type": "single_choice",
+      "content": "EasyJailbreak框架的四个核心模块是什么？",
+      "options": [
+        {"key": "A", "value": "Selector, Mutator, Constraint, Evaluator"},
+        {"key": "B", "value": "Input, Process, Output, Save"},
+        {"key": "C", "value": "Train, Test, Validate, Deploy"},
+        {"key": "D", "value": "Load, Edit, Run, Export"}
+      ],
+      "answer": "A",
+      "explanation": "EasyJailbreak包含Selector（选择器）、Mutator（突变器）、Constraint（约束）、Evaluator（评估器）。"
+    },
+    {
+      "type": "single_choice",
+      "content": "在越狱攻击循环中，Mutation的作用是什么？",
+      "options": [
+        {"key": "A", "value": "评估攻击效果"},
+        {"key": "B", "value": "对攻击提示进行变换"},
+        {"key": "C", "value": "选择目标模型"},
+        {"key": "D", "value": "保存攻击结果"}
+      ],
+      "answer": "B",
+      "explanation": "Mutation（突变）用于对攻击提示进行各种变换，生成新的攻击变体。"
+    },
+    {
+      "type": "single_choice",
+      "content": "PAIR方法的全称是什么？",
+      "options": [
+        {"key": "A", "value": "Prompt Automatic Iterative Refinement"},
+        {"key": "B", "value": "Parallel Attack Improvement Rate"},
+        {"key": "C", "value": "Progressive Attack Integration Routine"},
+        {"key": "D", "value": "Pattern Analysis Iterative Reasoning"}
+      ],
+      "answer": "A",
+      "explanation": "PAIR是Prompt Automatic Iterative Refinement的缩写，是一种自动迭代优化攻击提示的方法。"
+    },
+    {
+      "type": "true_false",
+      "content": "越狱攻击的目的是测试大模型的安全性和防护能力。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "越狱攻击研究帮助了解模型的安全漏洞，从而改进防护措施。"
+    },
+    {
+      "type": "single_choice",
+      "content": "EasyJailbreak集成了多少种主流越狱攻击方法？",
+      "options": [
+        {"key": "A", "value": "5种"},
+        {"key": "B", "value": "8种"},
+        {"key": "C", "value": "11种"},
+        {"key": "D", "value": "15种"}
+      ],
+      "answer": "C",
+      "explanation": "EasyJailbreak框架集成了11种主流的越狱攻击方法。"
+    }
+  ],
+  "chapter7": [
+    {
+      "type": "single_choice",
+      "content": "文本隐写术的基本原理是什么？",
+      "options": [
+        {"key": "A", "value": "加密文本内容"},
+        {"key": "B", "value": "将秘密信息嵌入到看似正常的文本中"},
+        {"key": "C", "value": "压缩文本大小"},
+        {"key": "D", "value": "翻译文本内容"}
+      ],
+      "answer": "B",
+      "explanation": "隐写术将秘密信息转换为二进制序列，嵌入到看似正常的文本生成过程中。"
+    },
+    {
+      "type": "single_choice",
+      "content": "霍夫曼编码（Huffman Coding）的特点是什么？",
+      "options": [
+        {"key": "A", "value": "固定长度编码"},
+        {"key": "B", "value": "基于频率的变长编码"},
+        {"key": "C", "value": "随机编码"},
+        {"key": "D", "value": "无损压缩"}
+      ],
+      "answer": "B",
+      "explanation": "霍夫曼编码根据符号出现频率分配不同长度的编码，高频符号用短编码。"
+    },
+    {
+      "type": "true_false",
+      "content": "在LLM隐写中，信息嵌入和提取过程是可逆的。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "隐写信息可以从生成的文本中完整提取出来，实现信息的可逆嵌入。"
+    },
+    {
+      "type": "single_choice",
+      "content": "在隐写术中，参数k的作用是什么？",
+      "options": [
+        {"key": "A", "value": "控制文本长度"},
+        {"key": "B", "value": "控制编码的粒度"},
+        {"key": "C", "value": "控制模型大小"},
+        {"key": "D", "value": "控制训练轮数"}
+      ],
+      "answer": "B",
+      "explanation": "k值控制编码的粒度，影响每次可以嵌入的信息量和文本质量。"
+    },
+    {
+      "type": "single_choice",
+      "content": "教程中使用哪个模型进行文本隐写？",
+      "options": [
+        {"key": "A", "value": "BERT"},
+        {"key": "B", "value": "GPT-2"},
+        {"key": "C", "value": "T5"},
+        {"key": "D", "value": "RoBERTa"}
+      ],
+      "answer": "B",
+      "explanation": "教程使用GPT-2模型在文本生成过程中嵌入隐写信息。"
+    }
+  ],
+  "chapter8": [
+    {
+      "type": "single_choice",
+      "content": "多模态大语言模型（MLLM）的两种主要架构是什么？",
+      "options": [
+        {"key": "A", "value": "LLM as Task Scheduler 和 LLM as Joint Part"},
+        {"key": "B", "value": "Encoder-only 和 Decoder-only"},
+        {"key": "C", "value": "Single-modal 和 Multi-modal"},
+        {"key": "D", "value": "Supervised 和 Unsupervised"}
+      ],
+      "answer": "A",
+      "explanation": "MLLM有两种架构：LLM作为任务调度器（离散调度）和LLM作为联合部分（编码器-LLM-解码器）。"
+    },
+    {
+      "type": "single_choice",
+      "content": "NExT-GPT的三阶段训练中，第一阶段主要做什么？",
+      "options": [
+        {"key": "A", "value": "指令微调"},
+        {"key": "B", "value": "编码端对齐"},
+        {"key": "C", "value": "解码端对齐"},
+        {"key": "D", "value": "强化学习"}
+      ],
+      "answer": "B",
+      "explanation": "NExT-GPT三阶段训练：1.编码端对齐 2.解码端对齐 3.指令微调。"
+    },
+    {
+      "type": "single_choice",
+      "content": "ImageBind在多模态模型中的作用是什么？",
+      "options": [
+        {"key": "A", "value": "文本生成"},
+        {"key": "B", "value": "统一的多模态编码器"},
+        {"key": "C", "value": "图像压缩"},
+        {"key": "D", "value": "音频解码"}
+      ],
+      "answer": "B",
+      "explanation": "ImageBind提供统一的图像/视频/音频编码能力，是多模态模型的重要组件。"
+    },
+    {
+      "type": "true_false",
+      "content": "NExT-GPT支持任意模态到任意模态的转换（如文本+图像→文本+音频）。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "NExT-GPT是任意模态到任意模态的通用MLLM，支持T+I→T+A等多种模态组合。"
+    },
+    {
+      "type": "single_choice",
+      "content": "「T+I→T+V」表示什么含义？",
+      "options": [
+        {"key": "A", "value": "文本输入，视频输出"},
+        {"key": "B", "value": "文本和图像输入，文本和视频输出"},
+        {"key": "C", "value": "训练和推理"},
+        {"key": "D", "value": "测试和验证"}
+      ],
+      "answer": "B",
+      "explanation": "T+I→T+V表示输入为文本(Text)和图像(Image)，输出为文本和视频(Video)。"
+    }
+  ],
+  "chapter9": [
+    {
+      "type": "single_choice",
+      "content": "GUI智能体的基本动作类型不包括以下哪个？",
+      "options": [
+        {"key": "A", "value": "CLICK"},
+        {"key": "B", "value": "TYPE"},
+        {"key": "C", "value": "SCROLL"},
+        {"key": "D", "value": "COMPILE"}
+      ],
+      "answer": "D",
+      "explanation": "GUI智能体的基本动作包括CLICK、TYPE、SCROLL等UI操作，不包括编译操作。"
+    },
+    {
+      "type": "single_choice",
+      "content": "OS-Kairos数据集包含哪些内容？",
+      "options": [
+        {"key": "A", "value": "任务、截图、动作序列"},
+        {"key": "B", "value": "文本、标签、分数"},
+        {"key": "C", "value": "图像、描述、类别"},
+        {"key": "D", "value": "音频、转录、时间戳"}
+      ],
+      "answer": "A",
+      "explanation": "OS-Kairos数据集包含任务描述、GUI截图和对应的动作序列，用于训练GUI智能体。"
+    },
+    {
+      "type": "single_choice",
+      "content": "教程中使用哪个模型构建GUI智能体？",
+      "options": [
+        {"key": "A", "value": "GPT-4V"},
+        {"key": "B", "value": "Qwen2-VL-7B"},
+        {"key": "C", "value": "LLaVA"},
+        {"key": "D", "value": "CLIP"}
+      ],
+      "answer": "B",
+      "explanation": "教程使用Qwen2-VL-7B多模态视觉语言模型构建GUI智能体。"
+    },
+    {
+      "type": "true_false",
+      "content": "GUI智能体的置信度评分范围是1-5分。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "智能体使用1-5分的置信度评分来评估动作完成目标的可能性。"
+    },
+    {
+      "type": "single_choice",
+      "content": "GUI智能体通过什么方式理解界面？",
+      "options": [
+        {"key": "A", "value": "纯文本分析"},
+        {"key": "B", "value": "视觉理解"},
+        {"key": "C", "value": "音频识别"},
+        {"key": "D", "value": "代码解析"}
+      ],
+      "answer": "B",
+      "explanation": "GUI智能体基于视觉理解来分析界面截图并决定操作动作。"
+    }
+  ],
+  "chapter10": [
+    {
+      "type": "single_choice",
+      "content": "R-Judge评测平台的主要目的是什么？",
+      "options": [
+        {"key": "A", "value": "评估模型的语法正确性"},
+        {"key": "B", "value": "评估智能体的安全性"},
+        {"key": "C", "value": "评估模型的速度"},
+        {"key": "D", "value": "评估模型的大小"}
+      ],
+      "answer": "B",
+      "explanation": "R-Judge是对齐人类安全共识的智能体安全评测平台。"
+    },
+    {
+      "type": "single_choice",
+      "content": "ReAct框架中，智能体生成的两个主要内容是什么？",
+      "options": [
+        {"key": "A", "value": "thought和action"},
+        {"key": "B", "value": "input和output"},
+        {"key": "C", "value": "query和answer"},
+        {"key": "D", "value": "train和test"}
+      ],
+      "answer": "A",
+      "explanation": "ReAct框架让智能体生成想法（thought）和行为（action），实现推理与行动的结合。"
+    },
+    {
+      "type": "single_choice",
+      "content": "安全判断任务的输出是什么形式？",
+      "options": [
+        {"key": "A", "value": "详细风险分析报告"},
+        {"key": "B", "value": "二元标签（safe/unsafe）"},
+        {"key": "C", "value": "数值评分"},
+        {"key": "D", "value": "文本描述"}
+      ],
+      "answer": "B",
+      "explanation": "安全判断任务输出二元标签，判断智能体行为是安全(safe)还是不安全(unsafe)。"
+    },
+    {
+      "type": "true_false",
+      "content": "Oracle Test使用人类标注的风险描述来测试模型安全判断的性能上限。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "Oracle Test提供人类标注的风险描述，用于评估模型在理想条件下的安全判断能力。"
+    },
+    {
+      "type": "single_choice",
+      "content": "风险识别与安全判断的主要区别是什么？",
+      "options": [
+        {"key": "A", "value": "风险识别分析具体风险，安全判断给出是否安全的结论"},
+        {"key": "B", "value": "两者没有区别"},
+        {"key": "C", "value": "风险识别更简单"},
+        {"key": "D", "value": "安全判断需要更多数据"}
+      ],
+      "answer": "A",
+      "explanation": "风险识别将交互记录映射为风险分析文本，安全判断基于分析给出safe/unsafe结论。"
+    }
+  ],
+  "chapter11": [
+    {
+      "type": "single_choice",
+      "content": "PPO（Proximal Policy Optimization）流程的三个主要步骤是什么？",
+      "options": [
+        {"key": "A", "value": "Rollout, Evaluation, Optimization"},
+        {"key": "B", "value": "Train, Test, Deploy"},
+        {"key": "C", "value": "Load, Process, Save"},
+        {"key": "D", "value": "Input, Hidden, Output"}
+      ],
+      "answer": "A",
+      "explanation": "PPO流程包括：Rollout（生成响应）、Evaluation（评估奖励）、Optimization（优化策略）。"
+    },
+    {
+      "type": "single_choice",
+      "content": "在RLHF中，KL散度约束的作用是什么？",
+      "options": [
+        {"key": "A", "value": "加速训练"},
+        {"key": "B", "value": "确保模型不会偏离参考模型太远"},
+        {"key": "C", "value": "增加模型容量"},
+        {"key": "D", "value": "减少内存使用"}
+      ],
+      "answer": "B",
+      "explanation": "KL散度约束防止优化后的模型与参考模型差异过大，保持模型稳定性。"
+    },
+    {
+      "type": "single_choice",
+      "content": "教程中使用什么作为奖励信号？",
+      "options": [
+        {"key": "A", "value": "人工评分"},
+        {"key": "B", "value": "BERT情感分类器"},
+        {"key": "C", "value": "语法检查器"},
+        {"key": "D", "value": "长度计数器"}
+      ],
+      "answer": "B",
+      "explanation": "教程使用BERT情感分类器作为奖励函数，引导模型生成积极情感的文本。"
+    },
+    {
+      "type": "true_false",
+      "content": "Value Head用于估计状态值，是PPO算法的重要组成部分。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "Value Head是额外的输出头，用于估计当前状态的价值，帮助计算优势函数。"
+    },
+    {
+      "type": "single_choice",
+      "content": "参考模型（Reference Model）在RLHF中的角色是什么？",
+      "options": [
+        {"key": "A", "value": "提供训练数据"},
+        {"key": "B", "value": "用于计算KL散度的冻结模型"},
+        {"key": "C", "value": "评估模型性能"},
+        {"key": "D", "value": "生成奖励信号"}
+      ],
+      "answer": "B",
+      "explanation": "参考模型是冻结的原始模型，用于计算KL散度以约束优化过程。"
+    },
+    {
+      "type": "true_false",
+      "content": "RLHF可以用于对齐大模型，使其输出更符合人类偏好。",
+      "options": [
+        {"key": "true", "value": "正确"},
+        {"key": "false", "value": "错误"}
+      ],
+      "answer": "true",
+      "explanation": "RLHF（强化学习人类反馈）是大模型对齐的核心技术，使模型输出符合人类价值观。"
+    }
+  ]
+}

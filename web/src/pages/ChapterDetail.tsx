@@ -14,7 +14,9 @@ import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import NotebookViewer from '@/components/NotebookViewer'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
-import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy } from 'lucide-react'
+import ExamPanel from '@/components/ExamPanel'
+import { useExamStatus } from '@/hooks/useExam'
 
 /**
  * 格式化学习时长
@@ -46,6 +48,7 @@ export default function ChapterDetail() {
   const { data: chapter, isLoading: chapterLoading } = useChapter(chapterId)
   const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId)
   const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId)
+  const { data: examStatus } = useExamStatus(chapterId)
   const updateProgress = useUpdateProgress()
 
   // 学习时长追踪
@@ -157,16 +160,46 @@ export default function ChapterDetail() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* 进度条 */}
+            {/* 综合进度条 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">完成度</span>
+                <span className="text-sm text-muted-foreground">综合完成度</span>
                 <span className="text-sm font-medium">
                   {Math.round(chapter.completion_percentage)}%
                 </span>
               </div>
               <Progress value={chapter.completion_percentage} />
+              <p className="text-xs text-muted-foreground">
+                综合完成度 = 学习时长(50%) + 考核成绩(50%)
+              </p>
             </div>
+
+            {/* 分项进度 */}
+            {isAuth && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm font-medium">学习时长</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    目标: 1小时 (占50%)
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Trophy className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm font-medium">考核成绩</span>
+                  </div>
+                  <p className="text-lg font-bold text-primary">
+                    {examStatus?.best_percentage?.toFixed(0) || 0}分
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    最高分 (占50%)
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* 当前阅读进度提示 */}
             {isAuth && readProgress > 0 && readProgress > chapter.completion_percentage && (
@@ -175,46 +208,6 @@ export default function ChapterDetail() {
                 当前阅读位置: {readProgress}%（进度将自动保存）
               </div>
             )}
-
-            {/* 快速设置进度按钮 */}
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">快速设置进度：</p>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant={chapter.completion_percentage >= 25 ? "default" : "outline"}
-                  onClick={() => handleProgressUpdate(25)}
-                  disabled={!isAuth || updateProgress.isPending}
-                >
-                  25%
-                </Button>
-                <Button
-                  size="sm"
-                  variant={chapter.completion_percentage >= 50 ? "default" : "outline"}
-                  onClick={() => handleProgressUpdate(50)}
-                  disabled={!isAuth || updateProgress.isPending}
-                >
-                  50%
-                </Button>
-                <Button
-                  size="sm"
-                  variant={chapter.completion_percentage >= 75 ? "default" : "outline"}
-                  onClick={() => handleProgressUpdate(75)}
-                  disabled={!isAuth || updateProgress.isPending}
-                >
-                  75%
-                </Button>
-                <Button
-                  size="sm"
-                  variant={chapter.completed ? "default" : "outline"}
-                  onClick={() => handleProgressUpdate(100)}
-                  disabled={!isAuth || updateProgress.isPending}
-                  className={chapter.completed ? "bg-green-600 hover:bg-green-700" : ""}
-                >
-                  {chapter.completed ? "✓ 已完成" : "标记完成"}
-                </Button>
-              </div>
-            </div>
 
             {/* 完成提示 */}
             {chapter.completed && (
@@ -231,6 +224,15 @@ export default function ChapterDetail() {
         <TabsList>
           <TabsTrigger value="notebook">Notebook</TabsTrigger>
           <TabsTrigger value="readme">README</TabsTrigger>
+          <TabsTrigger value="exam" className="flex items-center gap-1">
+            <ClipboardList className="h-4 w-4" />
+            章节考核
+            {examStatus && examStatus.best_percentage > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs rounded bg-primary/20 text-primary">
+                {examStatus.best_percentage.toFixed(0)}分
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="notebook" className="mt-6">
@@ -280,6 +282,10 @@ export default function ChapterDetail() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="exam" className="mt-6">
+          <ExamPanel chapterId={chapterId} />
         </TabsContent>
       </Tabs>
     </div>

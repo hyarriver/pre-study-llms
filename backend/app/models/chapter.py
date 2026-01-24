@@ -24,3 +24,5 @@ class Chapter(Base):
     # 关系
     progress = relationship("Progress", back_populates="chapter", cascade="all, delete-orphan")
     notes = relationship("Note", back_populates="chapter", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")
+    exam_records = relationship("ExamRecord", back_populates="chapter", cascade="all, delete-orphan")

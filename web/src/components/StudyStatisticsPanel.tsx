@@ -14,6 +14,8 @@ import {
   Trophy,
   TrendingUp,
   LogIn,
+  ClipboardList,
+  Award,
 } from 'lucide-react'
 
 /**
@@ -113,6 +115,15 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
     return null
   }
 
+  // 计算考核统计
+  const examedChapters = stats.chapter_details.filter(c => c.exam_attempts > 0).length
+  const passedChapters = stats.chapter_details.filter(c => c.exam_score >= 60).length
+  const avgExamScore = examedChapters > 0
+    ? stats.chapter_details
+        .filter(c => c.exam_attempts > 0)
+        .reduce((sum, c) => sum + c.exam_score, 0) / examedChapters
+    : 0
+
   // 紧凑模式（用于首页）
   if (compact) {
     return (
@@ -124,10 +135,10 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
           subtitle={`${stats.completed_chapters}/${stats.total_chapters} 章节`}
         />
         <StatCard
-          icon={<CheckCircle2 className="h-5 w-5 text-green-400" />}
-          title="已完成"
-          value={`${stats.completed_chapters} 章`}
-          subtitle={stats.in_progress_chapters > 0 ? `${stats.in_progress_chapters} 章学习中` : undefined}
+          icon={<ClipboardList className="h-5 w-5 text-green-400" />}
+          title="考核通过"
+          value={`${passedChapters}/${stats.total_chapters}`}
+          subtitle={examedChapters > 0 ? `平均 ${avgExamScore.toFixed(0)}分` : '暂未参加考核'}
         />
         <StatCard
           icon={<Clock className="h-5 w-5 text-purple-400" />}
@@ -169,11 +180,12 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
         </div>
 
         {/* 统计卡片 */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             icon={<CheckCircle2 className="h-5 w-5 text-green-400" />}
             title="已完成章节"
             value={stats.completed_chapters}
+            subtitle={`共 ${stats.total_chapters} 章`}
           />
           <StatCard
             icon={<BookOpen className="h-5 w-5 text-blue-400" />}
@@ -186,6 +198,18 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
             value={formatStudyTime(stats.total_study_time_seconds)}
           />
           <StatCard
+            icon={<ClipboardList className="h-5 w-5 text-cyan-400" />}
+            title="考核通过"
+            value={`${passedChapters}/${stats.total_chapters}`}
+            subtitle="60分及格"
+          />
+          <StatCard
+            icon={<Award className="h-5 w-5 text-yellow-400" />}
+            title="平均成绩"
+            value={examedChapters > 0 ? `${avgExamScore.toFixed(1)}分` : '-'}
+            subtitle={examedChapters > 0 ? `已考核 ${examedChapters} 章` : '暂未考核'}
+          />
+          <StatCard
             icon={<Flame className="h-5 w-5 text-orange-400" />}
             title="连续学习"
             value={`${stats.current_streak} 天`}
@@ -194,16 +218,34 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
         </div>
 
         {/* 成就提示 */}
-        {stats.completed_chapters > 0 && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            <span className="text-sm">
-              {stats.completed_chapters >= stats.total_chapters
-                ? '🎉 恭喜你完成了所有章节的学习！'
-                : stats.completed_chapters >= stats.total_chapters / 2
-                ? '👏 已完成一半以上，继续加油！'
-                : `📚 已完成 ${stats.completed_chapters} 个章节，继续保持！`}
-            </span>
+        {(stats.completed_chapters > 0 || passedChapters > 0) && (
+          <div className="space-y-2">
+            {stats.completed_chapters > 0 && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                <Trophy className="h-5 w-5 text-blue-500" />
+                <span className="text-sm">
+                  {stats.completed_chapters >= stats.total_chapters
+                    ? '恭喜你完成了所有章节的学习！'
+                    : stats.completed_chapters >= stats.total_chapters / 2
+                    ? `已完成一半以上（${stats.completed_chapters}/${stats.total_chapters}），继续加油！`
+                    : `已完成 ${stats.completed_chapters} 个章节，继续保持！`}
+                </span>
+              </div>
+            )}
+            {passedChapters > 0 && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                <Award className="h-5 w-5 text-yellow-500" />
+                <span className="text-sm">
+                  {passedChapters >= stats.total_chapters
+                    ? '所有章节考核全部通过！学霸认证！'
+                    : avgExamScore >= 90
+                    ? `平均成绩 ${avgExamScore.toFixed(0)} 分，优秀！`
+                    : avgExamScore >= 80
+                    ? `平均成绩 ${avgExamScore.toFixed(0)} 分，表现良好！`
+                    : `已通过 ${passedChapters} 章考核，继续努力！`}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

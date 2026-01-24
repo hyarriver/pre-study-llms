@@ -17,7 +17,9 @@ class ProgressUpdate(BaseModel):
     """更新进度模型"""
     completion_percentage: Optional[float] = None
     completed: Optional[bool] = None
-    study_time_seconds: Optional[int] = None  # 新增学习时长（秒）
+    study_time_seconds: Optional[int] = None  # 学习时长（秒）
+    exam_score: Optional[float] = None  # 考核最高分
+    exam_attempts: Optional[int] = None  # 考核次数
 
 
 class ProgressResponse(BaseModel):
@@ -28,6 +30,8 @@ class ProgressResponse(BaseModel):
     completed: bool
     last_accessed: datetime
     study_time_seconds: int = 0
+    exam_score: float = 0.0
+    exam_attempts: int = 0
 
     class Config:
         from_attributes = True
@@ -41,6 +45,8 @@ class ChapterProgressDetail(BaseModel):
     completion_percentage: float
     completed: bool
     study_time_seconds: int
+    exam_score: float = 0.0
+    exam_attempts: int = 0
     last_accessed: Optional[datetime] = None
 
 

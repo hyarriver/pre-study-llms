@@ -8,6 +8,7 @@ from app.services.chapter_service import ChapterService
 from app.services.progress_service import ProgressService
 from app.services.note_service import NoteService
 from app.services.notebook_service import NotebookService
+from app.services.exam_service import ExamService
 
 
 def get_chapter_service(
@@ -34,3 +35,10 @@ def get_note_service(
 def get_notebook_service() -> NotebookService:
     """获取Notebook服务"""
     return NotebookService()
+
+
+def get_exam_service(
+    db: Session = Depends(get_db)
+) -> ExamService:
+    """获取考试服务"""
+    return ExamService(db)

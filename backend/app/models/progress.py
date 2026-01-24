@@ -18,6 +18,8 @@ class Progress(Base):
     last_accessed = Column(DateTime, default=datetime.utcnow)
     completed = Column(Integer, default=0)  # 0: 未完成, 1: 已完成
     study_time_seconds = Column(Integer, default=0)  # 学习时长（秒）
+    exam_score = Column(Float, default=0.0)  # 考核最高分(0-100)
+    exam_attempts = Column(Integer, default=0)  # 考核次数
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
