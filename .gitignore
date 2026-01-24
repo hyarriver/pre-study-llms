@@ -1,0 +1,16 @@
+.DS_Store
+
+# 学习网站相关
+backend/venv/
+backend/__pycache__/
+backend/*.db
+backend/*.pyc
+web/node_modules/
+web/dist/
+web/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
