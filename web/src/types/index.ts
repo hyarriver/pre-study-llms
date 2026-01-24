@@ -36,6 +36,45 @@ export interface Progress {
   completion_percentage: number
   completed: boolean
   last_accessed: string
+  study_time_seconds: number
+}
+
+// 章节进度详情
+export interface ChapterProgressDetail {
+  chapter_id: number
+  chapter_number: number
+  title: string
+  completion_percentage: number
+  completed: boolean
+  study_time_seconds: number
+  last_accessed: string | null
+}
+
+// 学习统计数据
+export interface StudyStatistics {
+  total_chapters: number
+  completed_chapters: number
+  in_progress_chapters: number
+  overall_progress: number
+  total_study_time_seconds: number
+  current_streak: number
+  longest_streak: number
+  last_study_date: string | null
+  chapter_details: ChapterProgressDetail[]
+}
+
+// 每日学习记录
+export interface DailyStudyRecord {
+  study_date: string
+  study_time_seconds: number
+  chapters_studied: number
+}
+
+// 学习热力图数据
+export interface StudyHeatmapData {
+  records: DailyStudyRecord[]
+  start_date: string
+  end_date: string
 }
 
 // 笔记类型

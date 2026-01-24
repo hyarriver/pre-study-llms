@@ -59,8 +59,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-repo/dive-into-llms-visual.git
-cd dive-into-llms-visual
+git clone https://github.com/hyarriver/pre-study-llms.git
+cd pre-study-llms
 
 # 安装前端依赖
 cd web

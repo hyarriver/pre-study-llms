@@ -29,7 +29,7 @@
 ![mllm](assets/MLLM-summary.png)
 
 
-- 阅读完整教程：[[Slides](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter6/mllms.pdf)] 
+- 阅读完整教程：[[Slides](https://github.com/Lordog/pre-study-llms/blob/main/documents/chapter6/mllms.pdf)] 
 
 
 - 更多相关综述

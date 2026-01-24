@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { BookOpen, ArrowRight, Sparkles, Code, Brain, Zap, Shield, Cpu, Layers, Bot, Lock } from 'lucide-react'
 import NeuralNetworkBackground from '@/components/NeuralNetworkBackground'
+import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
+import { useAuthStore } from '@/store/authStore'
 
 const chapters = [
   { num: '01', title: '微调与部署', desc: '预训练模型微调与部署指南', icon: Cpu },
@@ -18,6 +20,8 @@ const chapters = [
 ]
 
 export default function Home() {
+  const isAuth = !!useAuthStore((s) => s.user)
+  
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Three.js 背景 */}
@@ -62,7 +66,7 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 rounded-xl border-white/20 hover:bg-white/10">
-              <a href="https://github.com/Lordog/dive-into-llms" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/hyarriver/pre-study-llms" target="_blank" rel="noopener noreferrer">
                 GitHub
                 <Code className="ml-2 h-5 w-5" />
               </a>
@@ -124,6 +128,19 @@ export default function Home() {
             </p>
           </div>
         </div>
+
+        {/* 学习统计（仅登录用户显示） */}
+        {isAuth && (
+          <div className="py-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                <span className="gradient-text">我的学习</span>
+              </h2>
+              <p className="text-muted-foreground text-lg">追踪你的学习进度</p>
+            </div>
+            <StudyStatisticsPanel compact />
+          </div>
+        )}
 
         {/* 章节列表 */}
         <div className="py-12">

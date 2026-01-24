@@ -16,7 +16,7 @@
 
 ### 1.1 了解大模型智能体
 
-阅读教程：[[Slides](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter7/agents.pdf)] 
+阅读教程：[[Slides](https://github.com/Lordog/pre-study-llms/blob/main/documents/chapter7/agents.pdf)] 
 
 ### 1.2 了解大模型智能体“自主操作系统”
 

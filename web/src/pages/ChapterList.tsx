@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { useChapters } from '@/hooks/useChapters'
 import { CheckCircle2, Circle, BookOpen } from 'lucide-react'
+import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
 
 export default function ChapterList() {
   const { data: chapters = [], isLoading, error } = useChapters()
@@ -24,6 +25,9 @@ export default function ChapterList() {
           选择您想要学习的章节开始学习
         </p>
       </div>
+
+      {/* 学习统计面板 */}
+      <StudyStatisticsPanel />
 
       <div className="grid gap-4">
         {chapters.map((chapter) => (

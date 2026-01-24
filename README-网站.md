@@ -53,7 +53,7 @@ npm run dev
 ## 📁 项目结构
 
 ```
-dive-into-llms/
+pre-study-llms/
 ├── backend/              # Python 后端
 │   ├── app/
 │   │   ├── routers/     # API 路由
