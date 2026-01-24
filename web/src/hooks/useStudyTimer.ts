@@ -20,6 +20,10 @@ export function useStudyTimer({
   const isAuth = !!useAuthStore((s) => s.user)
   const updateProgress = useUpdateProgress()
   
+  // 使用 ref 存储 updateProgress.mutate 以避免无限循环
+  const updateProgressRef = useRef(updateProgress.mutate)
+  updateProgressRef.current = updateProgress.mutate
+  
   // 累计的学习时长（秒）
   const accumulatedTimeRef = useRef(0)
   // 上次记录时间
@@ -28,6 +32,9 @@ export function useStudyTimer({
   const isVisibleRef = useRef(true)
   // 上报定时器
   const reportTimerRef = useRef<number | null>(null)
+  // 章节 ID ref
+  const chapterIdRef = useRef(chapterId)
+  chapterIdRef.current = chapterId
 
   // 上报学习时长
   const reportStudyTime = useCallback(() => {
@@ -36,13 +43,13 @@ export function useStudyTimer({
     const timeToReport = accumulatedTimeRef.current
     accumulatedTimeRef.current = 0  // 重置累计时间
     
-    updateProgress.mutate({
-      chapterId,
+    updateProgressRef.current({
+      chapterId: chapterIdRef.current,
       data: {
         study_time_seconds: timeToReport,
       },
     })
-  }, [chapterId, isAuth, enabled, updateProgress])
+  }, [isAuth, enabled])
 
   // 更新累计时间
   const tick = useCallback(() => {
@@ -103,15 +110,16 @@ export function useStudyTimer({
       // 组件卸载时上报剩余时间
       if (accumulatedTimeRef.current > 0) {
         const timeToReport = accumulatedTimeRef.current
-        updateProgress.mutate({
-          chapterId,
+        accumulatedTimeRef.current = 0
+        updateProgressRef.current({
+          chapterId: chapterIdRef.current,
           data: {
             study_time_seconds: timeToReport,
           },
         })
       }
     }
-  }, [chapterId, isAuth, enabled, reportInterval, tick, reportStudyTime, updateProgress])
+  }, [chapterId, isAuth, enabled, reportInterval, tick, reportStudyTime])
 
   // 手动上报（供外部调用）
   const forceReport = useCallback(() => {
