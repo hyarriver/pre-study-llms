@@ -2,6 +2,7 @@
  * Notebook 查看器组件
  * 支持代码高亮、Markdown渲染和图片显示
  */
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
@@ -9,6 +10,7 @@ import type { NotebookCell } from '@/types'
 import { detectLanguage } from '@/utils/detectLanguage'
 import CodeBlock from '@/components/CodeBlock'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
+import ImageModal from '@/components/ImageModal'
 
 interface NotebookViewerProps {
   cells: NotebookCell[]
@@ -16,6 +18,7 @@ interface NotebookViewerProps {
 }
 
 export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerProps) {
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null)
 
   // 渲染代码输出（包括图片）
   const renderOutputs = (outputs: any[]) => {
@@ -27,26 +30,30 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
           // 处理图片输出
           if (output.data && output.data['image/png']) {
             const imageData = output.data['image/png']
+            const imageSrc = `data:image/png;base64,${imageData}`
             return (
               <div key={idx} className="overflow-x-auto -webkit-overflow-scrolling-touch">
                 <img
-                  src={`data:image/png;base64,${imageData}`}
+                  src={imageSrc}
                   alt="Code output"
-                  className="max-w-full h-auto rounded border block"
+                  className="max-w-full h-auto rounded border block cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
                   loading="lazy"
+                  onClick={() => setModalImage({ src: imageSrc, alt: 'Code output' })}
                 />
               </div>
             )
           }
           if (output.data && output.data['image/jpeg']) {
             const imageData = output.data['image/jpeg']
+            const imageSrc = `data:image/jpeg;base64,${imageData}`
             return (
               <div key={idx} className="overflow-x-auto -webkit-overflow-scrolling-touch">
                 <img
-                  src={`data:image/jpeg;base64,${imageData}`}
+                  src={imageSrc}
                   alt="Code output"
-                  className="max-w-full h-auto rounded border block"
+                  className="max-w-full h-auto rounded border block cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
                   loading="lazy"
+                  onClick={() => setModalImage({ src: imageSrc, alt: 'Code output' })}
                 />
               </div>
             )
@@ -92,8 +99,9 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {cells.map((cell, index) => (
+    <>
+      <div className="space-y-3 sm:space-y-4">
+        {cells.map((cell, index) => (
         <div
           key={index}
           className={`rounded-lg border overflow-hidden ${
@@ -131,6 +139,17 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
           )}
         </div>
       ))}
-    </div>
+      </div>
+      
+      {/* 图片模态框 */}
+      {modalImage && (
+        <ImageModal
+          src={modalImage.src}
+          alt={modalImage.alt}
+          isOpen={!!modalImage}
+          onClose={() => setModalImage(null)}
+        />
+      )}
+    </>
   )
 }

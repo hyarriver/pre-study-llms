@@ -2,12 +2,48 @@
  * Markdown 组件配置
  * 用于统一配置 ReactMarkdown 的自定义组件
  */
+import { useState } from 'react'
 import type { Components } from 'react-markdown'
 import CodeBlock from './CodeBlock'
 import { processImagePath } from '@/utils/imagePath'
+import ImageModal from './ImageModal'
 
 interface MarkdownComponentsProps {
   chapterNumber?: number
+}
+
+// 图片组件（带点击放大功能）
+function ImageWithModal({ src, alt, chapterNumber, ...props }: any) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const imageSrc = processImagePath(src || '', chapterNumber)
+
+  return (
+    <>
+      <img
+        {...props}
+        src={imageSrc}
+        alt={alt}
+        className="max-w-full h-auto rounded-lg border shadow-sm my-4 cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
+        loading="lazy"
+        onClick={() => setIsModalOpen(true)}
+        onError={(e) => {
+          console.error('Image load error:', {
+            original: src,
+            processed: imageSrc,
+            chapter: chapterNumber,
+          })
+          e.currentTarget.style.border = '2px dashed red'
+          e.currentTarget.title = `无法加载图片: ${src}`
+        }}
+      />
+      <ImageModal
+        src={imageSrc}
+        alt={alt}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
+  )
 }
 
 export function createMarkdownComponents({
@@ -82,28 +118,8 @@ export function createMarkdownComponents({
       )
     },
 
-    // 图片
-    img: ({ src, alt, ...props }) => {
-      const imageSrc = processImagePath(src || '', chapterNumber)
-      return (
-        <img
-          {...props}
-          src={imageSrc}
-          alt={alt}
-          className="max-w-full h-auto rounded-lg border shadow-sm my-4"
-          loading="lazy"
-          onError={(e) => {
-            console.error('Image load error:', {
-              original: src,
-              processed: imageSrc,
-              chapter: chapterNumber,
-            })
-            e.currentTarget.style.border = '2px dashed red'
-            e.currentTarget.title = `无法加载图片: ${src}`
-          }}
-        />
-      )
-    },
+    // 图片（使用带模态框的组件）
+    img: (props) => <ImageWithModal {...props} chapterNumber={chapterNumber} />,
 
     // 标题
     h1: ({ children, ...props }) => (
