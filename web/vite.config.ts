@@ -14,13 +14,15 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8001',
         changeOrigin: true,
+        secure: false,
       },
       '/static': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8001',
         changeOrigin: true,
-        rewrite: (path) => path, // 保持路径不变
+        secure: false,
+        rewrite: (path) => path,
       },
     },
   },

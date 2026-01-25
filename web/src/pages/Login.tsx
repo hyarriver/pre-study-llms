@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/store/authStore'
+import { getApiErrorMessage } from '@/lib/utils'
+import { checkBackendHealth } from '@/api/client'
 import { BookOpen, Smartphone } from 'lucide-react'
 
 function isMobileDevice() {
@@ -23,6 +25,7 @@ export default function Login() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
   const login = useAuthStore((s) => s.login)
   const loginWithWeChat = useAuthStore((s) => s.loginWithWeChat)
   const isLoading = useAuthStore((s) => s.isLoading)
@@ -35,21 +38,40 @@ export default function Login() {
   const mobile = isMobileDevice()
   const wechat = isWeChatBrowser()
 
+  const probeBackend = useCallback(async () => {
+    setBackendOnline(null)
+    const ok = await checkBackendHealth()
+    setBackendOnline(ok)
+    return ok
+  }, [])
+
+  useEffect(() => {
+    probeBackend()
+  }, [probeBackend])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!phone.trim() || !password) {
+    const raw = phone.trim()
+    if (!raw || !password) {
       setError('请填写手机号和密码')
       return
     }
+    if (!/^\d{11}$/.test(raw)) {
+      setError('请输入 11 位手机号')
+      return
+    }
     try {
-      await login(phone.trim(), password)
+      await login(raw, password)
       await queryClient.invalidateQueries({ queryKey: ['chapters'] })
       await queryClient.invalidateQueries({ queryKey: ['chapter'] })
       navigate(redirect, { replace: true })
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(typeof msg === 'string' ? msg : '登录/注册失败，请重试')
+      if (import.meta.env?.DEV) {
+        const ax = err as { response?: { status?: number; data?: unknown } }
+        console.error('[Login] 失败:', ax?.response?.status, ax?.response?.data, err)
+      }
+      setError(getApiErrorMessage(err, '登录/注册失败，请重试'))
     }
   }
 
@@ -68,8 +90,11 @@ export default function Login() {
       await queryClient.invalidateQueries({ queryKey: ['chapter'] })
       navigate(redirect, { replace: true })
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(typeof msg === 'string' ? msg : '微信登录失败，请重试')
+      if (import.meta.env?.DEV) {
+        const ax = err as { response?: { status?: number; data?: unknown } }
+        console.error('[Login] 微信登录失败:', ax?.response?.status, ax?.response?.data, err)
+      }
+      setError(getApiErrorMessage(err, '微信登录失败，请重试'))
     }
   }
 
@@ -86,23 +111,46 @@ export default function Login() {
   }, [user, mobile, wechat])
 
   return (
-    <div className="mx-auto max-w-sm space-y-6 pt-12">
+    <div className="mx-auto max-w-sm space-y-4 sm:space-y-6 pt-6 sm:pt-12 px-4">
       <div className="flex justify-center">
-        <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-          <BookOpen className="h-6 w-6" />
+        <Link to="/" className="flex items-center gap-2 text-lg sm:text-xl font-bold">
+          <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
           动手学大模型
         </Link>
       </div>
+
+      {backendOnline === false && (
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+          <p className="font-medium">后端未连接</p>
+          <p className="mt-1 text-muted-foreground">
+            请先在 <code className="rounded bg-muted px-1">backend</code> 目录运行：
+            <br />
+            <code className="mt-1 block rounded bg-muted px-2 py-1 text-xs">
+              uv run python -m uvicorn main:app --port 8001
+            </code>
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => probeBackend()}
+          >
+            重新检测连接
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle>登录 / 注册</CardTitle>
-          <CardDescription>使用手机号或微信登录，学习进度将自动云端同步</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">登录 / 注册</CardTitle>
+          <CardDescription className="text-sm">使用手机号或微信登录，学习进度将自动云端同步</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
-                <Smartphone className="h-4 w-4" />
+                <Smartphone className="h-4 w-4 flex-shrink-0" />
                 手机号
               </label>
               <Input
@@ -112,6 +160,7 @@ export default function Login() {
                 placeholder="请输入 11 位手机号"
                 autoComplete="tel"
                 disabled={isLoading}
+                className="min-h-[44px] text-base"
               />
             </div>
             <div className="space-y-2">
@@ -123,10 +172,11 @@ export default function Login() {
                 placeholder="请输入密码（首次输入即为注册密码）"
                 autoComplete="current-password"
                 disabled={isLoading}
+                className="min-h-[44px] text-base"
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            {error && <p className="text-sm text-destructive break-words">{error}</p>}
+            <Button type="submit" className="w-full min-h-[48px] text-base" disabled={isLoading}>
               {isLoading ? '处理中…' : '手机号登录 / 注册'}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
@@ -143,13 +193,13 @@ export default function Login() {
             <Button
               type="button"
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 min-h-[48px] text-base"
               disabled={isLoading}
               onClick={handleWeChatLogin}
             >
               <span className="inline-flex items-center gap-2">
                 {/* 用简单图标文字替代缺失的 WechatLogo 图标 */}
-                <span className="inline-block h-3 w-3 rounded-full bg-green-500" />
+                <span className="inline-block h-3 w-3 rounded-full bg-green-500 flex-shrink-0" />
                 微信一键登录（模拟）
               </span>
             </Button>

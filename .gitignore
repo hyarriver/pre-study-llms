@@ -9,6 +9,10 @@ web/node_modules/
 web/dist/
 web/.vite/
 
+# 部署相关
+deploy-temp/
+deploy-*.tar.gz
+
 # IDE
 .vscode/
 .idea/

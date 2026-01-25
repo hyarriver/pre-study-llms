@@ -9,7 +9,6 @@ import {
   ClipboardList,
   PlayCircle,
   Trophy,
-  Clock,
   AlertCircle,
   Loader2,
   Send,

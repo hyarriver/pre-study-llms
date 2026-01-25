@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { BookOpen, Home, LogIn, LogOut } from 'lucide-react'
 import { Button } from './ui/button'
 import { useAuthStore } from '@/store/authStore'
+import MobileMenu from './MobileMenu'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -29,37 +30,45 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={`min-h-screen ${isHomePage ? '' : 'bg-background'}`}>
       <header className={`border-b border-white/10 ${isHomePage ? 'backdrop-blur-xl bg-background/60 sticky top-0 z-30' : 'bg-background/95'}`}>
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 group">
-              <BookOpen className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">动手学大模型</span>
+            <Link to="/" className="flex items-center space-x-2 group flex-shrink-0">
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                动手学大模型
+              </span>
             </Link>
-            <nav className="flex items-center space-x-4">
+            
+            {/* 桌面端导航 */}
+            <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
               <Button
                 variant={location.pathname === '/' ? 'default' : 'ghost'}
+                size="sm"
                 asChild
               >
                 <Link to="/">
                   <Home className="mr-2 h-4 w-4" />
-                  首页
+                  <span className="hidden lg:inline">首页</span>
                 </Link>
               </Button>
               <Button
                 variant={location.pathname === '/chapters' ? 'default' : 'ghost'}
+                size="sm"
                 asChild
               >
                 <Link to="/chapters">
                   <BookOpen className="mr-2 h-4 w-4" />
-                  教程列表
+                  <span className="hidden lg:inline">教程列表</span>
                 </Link>
               </Button>
               {isAuth ? (
                 <>
-                  <span className="text-sm text-muted-foreground">{user.username}</span>
+                  <span className="text-xs lg:text-sm text-muted-foreground hidden xl:inline">
+                    {user.username}
+                  </span>
                   <Button variant="ghost" size="sm" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    退出
+                    <span className="hidden lg:inline">退出</span>
                   </Button>
                 </>
               ) : (
@@ -70,19 +79,24 @@ export default function Layout({ children }: LayoutProps) {
                 >
                   <Link to="/login">
                     <LogIn className="mr-2 h-4 w-4" />
-                    登录 / 注册
+                    <span className="hidden lg:inline">登录 / 注册</span>
                   </Link>
                 </Button>
               )}
             </nav>
+
+            {/* 移动端菜单 */}
+            <div className="md:hidden">
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </header>
-      <main className={isHomePage ? '' : 'container mx-auto px-4 py-8'}>
+      <main className={isHomePage ? '' : 'container mx-auto px-4 sm:px-6 py-4 sm:py-8'}>
         {children}
       </main>
       <footer className={`border-t border-white/10 ${isHomePage ? 'backdrop-blur-xl bg-background/60 relative z-20' : 'bg-background/95'}`}>
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
+        <div className="container mx-auto px-4 py-4 sm:py-6 text-center text-xs sm:text-sm text-muted-foreground">
           <p>《动手学大模型》系列编程实践教程 · 上海交通大学</p>
         </div>
       </footer>

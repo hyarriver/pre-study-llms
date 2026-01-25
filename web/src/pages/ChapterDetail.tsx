@@ -18,25 +18,6 @@ import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Troph
 import ExamPanel from '@/components/ExamPanel'
 import { useExamStatus } from '@/hooks/useExam'
 
-/**
- * 格式化学习时长
- */
-function formatStudyTime(seconds: number): string {
-  if (seconds < 60) {
-    return `${seconds}秒`
-  }
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) {
-    return `${minutes}分钟`
-  }
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  if (remainingMinutes === 0) {
-    return `${hours}小时`
-  }
-  return `${hours}小时${remainingMinutes}分钟`
-}
-
 export default function ChapterDetail() {
   const { id } = useParams<{ id: string }>()
   const chapterId = id ? parseInt(id) : 0
@@ -118,29 +99,30 @@ export default function ChapterDetail() {
   const readmeContent = readmeData?.content || ''
 
   return (
-    <div className="space-y-6" ref={contentRef}>
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" asChild>
+    <div className="space-y-4 sm:space-y-6" ref={contentRef}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+        <Button variant="ghost" asChild size="sm" className="min-h-[44px]">
           <Link to="/chapters">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回列表
+            <span className="hidden sm:inline">返回列表</span>
+            <span className="sm:hidden">返回</span>
           </Link>
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words">
             Chapter {chapter.chapter_number}: {chapter.title}
           </h1>
-          <p className="text-muted-foreground mt-2">{chapter.description}</p>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">{chapter.description}</p>
         </div>
         {chapter.completed && (
-          <CheckCircle2 className="h-6 w-6 text-green-500" />
+          <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-500 flex-shrink-0" />
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookMarked className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <BookMarked className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
             学习进度
           </CardTitle>
           {!isAuth && (
@@ -176,10 +158,10 @@ export default function ChapterDetail() {
 
             {/* 分项进度 */}
             {isAuth && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center gap-2 mb-1">
-                    <Clock className="h-4 w-4 text-blue-500" />
+                    <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
                     <span className="text-sm font-medium">学习时长</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -188,10 +170,10 @@ export default function ChapterDetail() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center gap-2 mb-1">
-                    <Trophy className="h-4 w-4 text-yellow-500" />
+                    <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                     <span className="text-sm font-medium">考核成绩</span>
                   </div>
-                  <p className="text-lg font-bold text-primary">
+                  <p className="text-base sm:text-lg font-bold text-primary">
                     {examStatus?.best_percentage?.toFixed(0) || 0}分
                   </p>
                   <p className="text-xs text-muted-foreground">

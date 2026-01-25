@@ -44,12 +44,12 @@ export default function Home() {
           </div>
           
           {/* 主标题 */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
             <span className="gradient-text animate-gradient">动手学大模型</span>
           </h1>
           
           {/* 副标题 */}
-          <p className="text-xl md:text-2xl text-foreground/70 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl md:text-2xl text-foreground/70 max-w-3xl mx-auto leading-relaxed px-2">
             系列编程实践教程，覆盖大模型
             <span className="text-blue-400 font-semibold"> 微调 </span>·
             <span className="text-purple-400 font-semibold"> 推理 </span>·
@@ -58,41 +58,41 @@ export default function Home() {
           </p>
           
           {/* CTA 按钮 */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <Button asChild size="lg" className="glow-button text-lg px-8 py-6 rounded-xl border-0">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-4 px-4">
+            <Button asChild size="lg" className="glow-button text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 rounded-xl border-0 min-h-[48px]">
               <Link to="/chapters">
                 开始学习
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 rounded-xl border-white/20 hover:bg-white/10">
+            <Button asChild variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 rounded-xl border-white/20 hover:bg-white/10 min-h-[48px]">
               <a href="https://github.com/hyarriver/pre-study-llms" target="_blank" rel="noopener noreferrer">
                 GitHub
-                <Code className="ml-2 h-5 w-5" />
+                <Code className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </a>
             </Button>
           </div>
           
           {/* 统计数据 */}
-          <div className="flex justify-center gap-12 pt-8">
+          <div className="flex justify-center gap-6 sm:gap-12 pt-6 sm:pt-8 flex-wrap">
             <div className="text-center">
-              <div className="text-3xl font-bold gradient-text">11</div>
-              <div className="text-sm text-muted-foreground">章节教程</div>
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">11</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">章节教程</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold gradient-text">100%</div>
-              <div className="text-sm text-muted-foreground">开源免费</div>
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">100%</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">开源免费</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold gradient-text">实战</div>
-              <div className="text-sm text-muted-foreground">代码驱动</div>
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">实战</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">代码驱动</div>
             </div>
           </div>
         </div>
 
         {/* 特性卡片 */}
-        <div className="grid gap-6 md:grid-cols-3 py-12">
-          <div className="feature-card p-6 hover:scale-105 transition-all duration-300">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3 py-8 sm:py-12 px-4">
+          <div className="feature-card p-4 sm:p-6 hover:scale-105 transition-all duration-300 active:scale-100">
             <div className="flex items-center space-x-4 mb-4">
               <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20">
                 <BookOpen className="h-6 w-6 text-blue-400" />
@@ -151,14 +151,14 @@ export default function Home() {
             <p className="text-muted-foreground text-lg">从基础到进阶，系统掌握大模型核心技术</p>
           </div>
           
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-4">
             {chapters.map((chapter) => {
               const Icon = chapter.icon
               return (
                 <Link
                   key={chapter.num}
                   to={`/chapters/${chapter.num}`}
-                  className="group glass-card rounded-xl p-5 hover:scale-105 transition-all duration-300"
+                  className="group glass-card rounded-xl p-4 sm:p-5 hover:scale-105 active:scale-100 transition-all duration-300"
                 >
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">

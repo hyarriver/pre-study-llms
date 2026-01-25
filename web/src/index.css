@@ -148,6 +148,13 @@ pre[class*="language-"] {
 /* 确保代码块可以横向滚动 */
 pre {
   @apply overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 触摸优化 */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 代码块内联样式 */
@@ -253,14 +260,119 @@ pre[class*="language-"] code {
   @apply my-6 border-t border-border;
 }
 
-/* 响应式表格 */
+/* 移动端优化 */
 @media (max-width: 768px) {
+  /* 响应式表格 - 横向滚动 */
   .prose table {
-    @apply text-xs;
+    @apply text-xs block overflow-x-auto;
+    display: block;
+    white-space: nowrap;
+  }
+  
+  .prose thead,
+  .prose tbody,
+  .prose tr {
+    display: block;
   }
   
   .prose th,
   .prose td {
     @apply px-2 py-2;
+    display: inline-block;
+    min-width: 100px;
+  }
+  
+  /* 代码块优化 */
+  .prose pre {
+    @apply text-xs;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .prose code {
+    @apply text-xs;
+    word-break: break-word;
+  }
+  
+  /* 标题字体大小优化 */
+  .prose h1 {
+    @apply text-2xl;
+  }
+  
+  .prose h2 {
+    @apply text-xl;
+  }
+  
+  .prose h3 {
+    @apply text-lg;
+  }
+  
+  /* 段落间距优化 */
+  .prose p {
+    @apply my-3;
+  }
+  
+  /* 图片响应式 */
+  .prose img {
+    @apply max-w-full h-auto;
+  }
+  
+  /* 按钮触摸优化 */
+  button,
+  .btn,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 输入框触摸优化 */
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 增加触摸目标大小 */
+  a,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 移除 hover 效果，使用 active */
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:bg-white\/10:active {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 防止双击缩放 */
+  * {
+    touch-action: manipulation;
+  }
+}
+
+/* 移动端滚动优化 */
+@media (max-width: 768px) {
+  html {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* 优化滚动性能 */
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 }

@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trophy, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import QuestionCard from './QuestionCard'
 import type { ExamResult as ExamResultType, Question } from '@/types'

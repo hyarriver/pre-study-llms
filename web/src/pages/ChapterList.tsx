@@ -18,10 +18,10 @@ export default function ChapterList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">教程列表</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">教程列表</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           选择您想要学习的章节开始学习
         </p>
       </div>
@@ -29,9 +29,9 @@ export default function ChapterList() {
       {/* 学习统计面板 */}
       <StudyStatisticsPanel />
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4">
         {chapters.map((chapter) => (
-          <Card key={chapter.id} className="hover:shadow-lg transition-shadow">
+          <Card key={chapter.id} className="hover:shadow-lg transition-shadow active:scale-[0.98]">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">

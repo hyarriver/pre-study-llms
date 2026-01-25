@@ -1,15 +1,20 @@
 """
 《动手学大模型》学习平台后端 API
 """
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pathlib import Path
 
 from app.core.config import settings
 from app.database.init_db import init_db
 from app.api import api_router
 from contextlib import asynccontextmanager
+
+logger = logging.getLogger(__name__)
 
 # 应用生命周期管理
 @asynccontextmanager
@@ -44,6 +49,23 @@ if documents_path.exists():
 
 # 注册API路由
 app.include_router(api_router, prefix="/api/v1")
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_request: Request, exc: HTTPException):
+    """确保 HTTPException 始终返回 JSON（含 detail），便于前端解析"""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(_request: Request, exc: Exception):
+    """未捕获异常统一返回 JSON 500"""
+    logger.exception("Unhandled exception: %s", exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "服务器内部错误，请稍后重试"},
+    )
+
 
 @app.get("/")
 async def root():
