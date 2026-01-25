@@ -29,12 +29,12 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className={`min-h-screen ${isHomePage ? '' : 'bg-background'}`}>
-      <header className={`border-b border-white/10 ${isHomePage ? 'backdrop-blur-xl bg-background/60 sticky top-0 z-30' : 'bg-background/95'}`}>
+      <header className={`border-b border-white/10 ${isHomePage ? 'backdrop-blur-xl bg-background/60 sticky top-0 z-30' : 'bg-background/95 sticky top-0 z-30'}`} style={{ zIndex: 30 }}>
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 group flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-2 group flex-shrink-0 touch-manipulation min-h-[44px]">
               <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 动手学大模型
               </span>
             </Link>

@@ -177,9 +177,9 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
 
         {/* 提交按钮 */}
         <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+          <CardContent className="py-3 sm:py-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                 {answeredCount < totalQuestions
                   ? `还有 ${totalQuestions - answeredCount} 题未作答`
                   : '所有题目已作答'}
@@ -188,6 +188,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
                 onClick={handleSubmitExam}
                 disabled={submitExam.isPending}
                 size="lg"
+                className="w-full sm:w-auto min-h-[48px] text-base touch-manipulation"
               >
                 {submitExam.isPending ? (
                   <>
@@ -224,36 +225,36 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 考试信息 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <p className="text-2xl font-bold">{examStatus?.question_count || 0}</p>
-              <p className="text-sm text-muted-foreground">题目数量</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+            <div className="p-3 sm:p-4 rounded-lg bg-muted/50 text-center">
+              <p className="text-xl sm:text-2xl font-bold">{examStatus?.question_count || 0}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">题目数量</p>
             </div>
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <p className="text-2xl font-bold">{examStatus?.total_score || 0}</p>
-              <p className="text-sm text-muted-foreground">满分</p>
+            <div className="p-3 sm:p-4 rounded-lg bg-muted/50 text-center">
+              <p className="text-xl sm:text-2xl font-bold">{examStatus?.total_score || 0}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">满分</p>
             </div>
-            <div className="p-4 rounded-lg bg-primary/10 text-center">
-              <p className="text-2xl font-bold text-primary">
+            <div className="p-3 sm:p-4 rounded-lg bg-primary/10 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-primary">
                 {examStatus?.best_percentage.toFixed(0) || 0}
               </p>
-              <p className="text-sm text-muted-foreground">最高分</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">最高分</p>
             </div>
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <p className="text-2xl font-bold">{examStatus?.attempts || 0}</p>
-              <p className="text-sm text-muted-foreground">考试次数</p>
+            <div className="p-3 sm:p-4 rounded-lg bg-muted/50 text-center">
+              <p className="text-xl sm:text-2xl font-bold">{examStatus?.attempts || 0}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">考试次数</p>
             </div>
           </div>
 
           {/* 最高分展示 */}
           {examStatus && examStatus.attempts > 0 && (
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10">
-              <Trophy className="h-8 w-8 text-yellow-500" />
-              <div>
-                <p className="font-medium">
+            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-yellow-500/10">
+              <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm sm:text-base font-medium break-words">
                   历史最高分: {examStatus.best_percentage.toFixed(1)}分
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   共参加 {examStatus.attempts} 次考试
                 </p>
               </div>
@@ -261,9 +262,9 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
           )}
 
           {/* 考试规则 */}
-          <div className="p-4 rounded-lg border">
-            <h4 className="font-medium mb-2">考试说明</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
+          <div className="p-3 sm:p-4 rounded-lg border">
+            <h4 className="text-sm sm:text-base font-medium mb-2">考试说明</h4>
+            <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 leading-relaxed">
               <li>• 本次考核共 {examStatus?.question_count || 0} 道题目</li>
               <li>• 题型包括：单选题、多选题、判断题</li>
               <li>• 可多次参加考试，系统记录最高成绩</li>
@@ -272,8 +273,8 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
           </div>
 
           {/* 开始考试按钮 */}
-          <Button onClick={handleStartExam} size="lg" className="w-full">
-            <PlayCircle className="h-5 w-5 mr-2" />
+          <Button onClick={handleStartExam} size="lg" className="w-full min-h-[48px] text-base touch-manipulation">
+            <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             开始考试
           </Button>
         </CardContent>

@@ -200,9 +200,13 @@ export function createMarkdownComponents({
       <a
         {...props}
         href={href}
-        className="text-primary hover:underline underline-offset-4"
+        className="text-primary hover:underline underline-offset-4 break-words break-all overflow-wrap-anywhere inline-block max-w-full"
         target={href?.startsWith('http') ? '_blank' : undefined}
         rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+        style={{
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+        }}
       >
         {children}
       </a>

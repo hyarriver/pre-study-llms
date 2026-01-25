@@ -159,15 +159,20 @@ pre {
 
 /* 代码块内联样式 */
 .prose code {
-  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  @apply bg-muted px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono;
+  word-break: break-word;
 }
 
 .prose pre {
   @apply bg-[#1e1e1e] text-gray-100;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose pre code {
   @apply bg-transparent p-0;
+  word-break: normal;
+  white-space: pre;
 }
 
 /* 代码块容器样式 */
@@ -223,6 +228,11 @@ pre[class*="language-"] code {
 /* 链接样式优化 */
 .prose a {
   @apply text-primary hover:underline underline-offset-4;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  display: inline-block;
+  max-width: 100%;
 }
 
 /* 标题样式优化 */
@@ -253,6 +263,8 @@ pre[class*="language-"] code {
 /* 段落样式优化 */
 .prose p {
   @apply my-4 leading-7 text-foreground;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* 水平线样式 */
@@ -267,6 +279,7 @@ pre[class*="language-"] code {
     @apply text-xs block overflow-x-auto;
     display: block;
     white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
   }
   
   .prose thead,
@@ -287,6 +300,7 @@ pre[class*="language-"] code {
     @apply text-xs;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    word-break: normal;
   }
   
   .prose code {
@@ -309,20 +323,23 @@ pre[class*="language-"] code {
   
   /* 段落间距优化 */
   .prose p {
-    @apply my-3;
+    @apply my-3 leading-6;
   }
   
   /* 图片响应式 */
   .prose img {
-    @apply max-w-full h-auto;
+    @apply max-w-full h-auto rounded-lg;
+    display: block;
   }
   
   /* 按钮触摸优化 */
   button,
   .btn,
-  [role="button"] {
+  [role="button"],
+  a[role="button"] {
     min-height: 44px;
     min-width: 44px;
+    touch-action: manipulation;
   }
   
   /* 输入框触摸优化 */
@@ -331,6 +348,26 @@ pre[class*="language-"] code {
   select {
     min-height: 44px;
     font-size: 16px; /* 防止 iOS 自动缩放 */
+    -webkit-appearance: none;
+  }
+  
+  /* 链接触摸优化 */
+  a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    touch-action: manipulation;
+  }
+  
+  /* 卡片间距优化 */
+  .glass-card,
+  .feature-card {
+    @apply p-4;
+  }
+  
+  /* 优化滚动性能 */
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -338,7 +375,8 @@ pre[class*="language-"] code {
 @media (hover: none) and (pointer: coarse) {
   /* 增加触摸目标大小 */
   a,
-  button {
+  button,
+  [role="button"] {
     min-height: 44px;
     min-width: 44px;
     display: inline-flex;
@@ -359,20 +397,108 @@ pre[class*="language-"] code {
   * {
     touch-action: manipulation;
   }
+  
+  /* 优化点击反馈 */
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  
+  /* 优化卡片点击 */
+  .glass-card:active,
+  .feature-card:active {
+    transform: scale(0.98);
+  }
 }
 
 /* 移动端滚动优化 */
 @media (max-width: 768px) {
   html {
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
   
   body {
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   /* 优化滚动性能 */
   * {
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* 优化图片加载 */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* 优化长文本换行 */
+  p, span, div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* 链接在移动端优化 */
+  a {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    display: inline-block;
+    max-width: 100%;
+    /* 允许长链接换行 */
+    white-space: normal;
+  }
+  
+  /* Markdown 内容中的链接 */
+  .prose a,
+  [class*="markdown"] a,
+  [class*="notebook"] a {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    /* 确保链接文本可以完整显示 */
+    line-height: 1.6;
+    /* 允许链接在任意位置换行 */
+    word-wrap: break-word;
+  }
+  
+  /* 确保容器不会截断链接 */
+  [class*="CardContent"],
+  [class*="card-content"],
+  .prose,
+  [class*="prose"] {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 100%;
+    /* 确保容器内容可以换行 */
+    overflow-x: visible;
+  }
+  
+  /* Card 内容区域优化 */
+  [class*="Card"] [class*="Content"] {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+  
+  /* 优化输入框在 iOS 上的显示 */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    -webkit-appearance: none;
+    border-radius: 0;
   }
 }

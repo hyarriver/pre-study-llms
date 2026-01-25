@@ -42,7 +42,7 @@ export default function CodeBlock({
   const theme = vscDarkPlus
 
   return (
-    <div className="relative group rounded-lg border overflow-hidden bg-[#1e1e1e] my-4">
+    <div className="relative group rounded-lg border overflow-hidden bg-[#1e1e1e] my-3 sm:my-4">
       {/* 工具栏 */}
       <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[#252526] border-b">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -50,7 +50,7 @@ export default function CodeBlock({
             <span className="text-xs font-mono text-gray-400 truncate">{title}</span>
           )}
           {language && language !== 'text' && (
-            <span className="text-xs px-2 py-0.5 rounded bg-[#3e3e42] text-gray-300 font-mono flex-shrink-0">
+            <span className="text-xs px-1.5 sm:px-2 py-0.5 rounded bg-[#3e3e42] text-gray-300 font-mono flex-shrink-0">
               {language}
             </span>
           )}
@@ -60,29 +60,29 @@ export default function CodeBlock({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 sm:h-6 sm:w-auto sm:px-2 text-gray-400 hover:text-gray-200 touch-manipulation"
+              className="h-9 w-9 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-200 active:text-gray-200 touch-manipulation p-0"
               onClick={() => setCollapsed(!collapsed)}
               aria-label={collapsed ? '展开代码' : '折叠代码'}
             >
               {collapsed ? (
-                <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
+                <ChevronDown className="h-4 w-4" />
               ) : (
-                <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
+                <ChevronUp className="h-4 w-4" />
               )}
             </Button>
           )}
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 sm:h-6 sm:w-auto sm:px-2 text-gray-400 hover:text-gray-200 touch-manipulation"
+            className="h-9 w-9 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-200 active:text-gray-200 touch-manipulation p-0"
             onClick={handleCopy}
             title="复制代码"
             aria-label="复制代码"
           >
             {copied ? (
-              <Check className="h-4 w-4 sm:h-3 sm:w-3 text-green-400" />
+              <Check className="h-4 w-4 text-green-400" />
             ) : (
-              <Copy className="h-4 w-4 sm:h-3 sm:w-3" />
+              <Copy className="h-4 w-4" />
             )}
           </Button>
         </div>
@@ -90,21 +90,21 @@ export default function CodeBlock({
 
       {/* 代码内容 */}
       {!collapsed && (
-        <div className="relative overflow-x-auto -webkit-overflow-scrolling-touch">
+        <div className="relative overflow-x-auto -webkit-overflow-scrolling-touch touch-pan-x">
           <SyntaxHighlighter
             language={language}
             style={theme}
             customStyle={{
               margin: 0,
-              padding: '0.75rem sm:1rem',
-              fontSize: '0.75rem sm:0.875rem',
+              padding: '0.75rem',
+              fontSize: '0.7rem',
               lineHeight: '1.6',
               background: 'transparent',
             }}
             showLineNumbers={showLineNumbers}
             lineNumberStyle={{
-              minWidth: '2.5em sm:3em',
-              paddingRight: '0.75rem sm:1em',
+              minWidth: '2em',
+              paddingRight: '0.5rem',
               color: '#858585',
               userSelect: 'none',
             }}
@@ -118,7 +118,7 @@ export default function CodeBlock({
       )}
 
       {collapsed && (
-        <div className="px-4 py-2 text-xs text-gray-400">
+        <div className="px-3 sm:px-4 py-2 text-xs text-gray-400">
           代码已折叠（{code.split('\n').length} 行）
         </div>
       )}

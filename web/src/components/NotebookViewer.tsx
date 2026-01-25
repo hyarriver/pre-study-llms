@@ -28,23 +28,27 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
           if (output.data && output.data['image/png']) {
             const imageData = output.data['image/png']
             return (
-              <img
-                key={idx}
-                src={`data:image/png;base64,${imageData}`}
-                alt="Code output"
-                className="max-w-full rounded border"
-              />
+              <div key={idx} className="overflow-x-auto -webkit-overflow-scrolling-touch">
+                <img
+                  src={`data:image/png;base64,${imageData}`}
+                  alt="Code output"
+                  className="max-w-full h-auto rounded border block"
+                  loading="lazy"
+                />
+              </div>
             )
           }
           if (output.data && output.data['image/jpeg']) {
             const imageData = output.data['image/jpeg']
             return (
-              <img
-                key={idx}
-                src={`data:image/jpeg;base64,${imageData}`}
-                alt="Code output"
-                className="max-w-full rounded border"
-              />
+              <div key={idx} className="overflow-x-auto -webkit-overflow-scrolling-touch">
+                <img
+                  src={`data:image/jpeg;base64,${imageData}`}
+                  alt="Code output"
+                  className="max-w-full h-auto rounded border block"
+                  loading="lazy"
+                />
+              </div>
             )
           }
           // 处理文本输出
@@ -88,7 +92,7 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {cells.map((cell, index) => (
         <div
           key={index}
@@ -99,7 +103,7 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
           }`}
         >
           {cell.cell_type === 'markdown' ? (
-            <div className="p-4">
+            <div className="p-3 sm:p-4 prose prose-invert max-w-none break-words overflow-wrap-anywhere">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
@@ -118,7 +122,7 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
                 canCollapse={cell.source.split('\n').length > 20}
               />
               {cell.outputs && cell.outputs.length > 0 && (
-                <div className="mt-4 px-4 pb-4">
+                <div className="mt-3 sm:mt-4 px-3 sm:px-4 pb-3 sm:pb-4">
                   <div className="text-xs font-mono text-muted-foreground mb-2">输出:</div>
                   {renderOutputs(cell.outputs)}
                 </div>

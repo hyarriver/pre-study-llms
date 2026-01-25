@@ -47,12 +47,12 @@ interface StatCardProps {
 
 function StatCard({ icon, title, value, subtitle, className = '' }: StatCardProps) {
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-lg bg-background/50 ${className}`}>
-      <div className="p-2 rounded-lg bg-primary/10">{icon}</div>
-      <div>
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <p className="text-xl font-bold">{value}</p>
-        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+    <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-background/50 ${className}`}>
+      <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs sm:text-sm text-muted-foreground truncate">{title}</p>
+        <p className="text-lg sm:text-xl font-bold truncate">{value}</p>
+        {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
       </div>
     </div>
   )
@@ -127,26 +127,26 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
   // 紧凑模式（用于首页）
   if (compact) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<BookOpen className="h-5 w-5 text-blue-400" />}
+          icon={<BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />}
           title="学习进度"
           value={`${stats.overall_progress.toFixed(1)}%`}
           subtitle={`${stats.completed_chapters}/${stats.total_chapters} 章节`}
         />
         <StatCard
-          icon={<ClipboardList className="h-5 w-5 text-green-400" />}
+          icon={<ClipboardList className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />}
           title="考核通过"
           value={`${passedChapters}/${stats.total_chapters}`}
           subtitle={examedChapters > 0 ? `平均 ${avgExamScore.toFixed(0)}分` : '暂未参加考核'}
         />
         <StatCard
-          icon={<Clock className="h-5 w-5 text-purple-400" />}
+          icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />}
           title="学习时长"
           value={formatStudyTime(stats.total_study_time_seconds)}
         />
         <StatCard
-          icon={<Flame className="h-5 w-5 text-orange-400" />}
+          icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />}
           title="连续学习"
           value={`${stats.current_streak} 天`}
           subtitle={stats.longest_streak > stats.current_streak ? `最长 ${stats.longest_streak} 天` : undefined}
@@ -180,37 +180,37 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
         </div>
 
         {/* 统计卡片 */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
-            icon={<CheckCircle2 className="h-5 w-5 text-green-400" />}
+            icon={<CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />}
             title="已完成章节"
             value={stats.completed_chapters}
             subtitle={`共 ${stats.total_chapters} 章`}
           />
           <StatCard
-            icon={<BookOpen className="h-5 w-5 text-blue-400" />}
+            icon={<BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />}
             title="学习中"
             value={stats.in_progress_chapters}
           />
           <StatCard
-            icon={<Clock className="h-5 w-5 text-purple-400" />}
+            icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />}
             title="总学习时长"
             value={formatStudyTime(stats.total_study_time_seconds)}
           />
           <StatCard
-            icon={<ClipboardList className="h-5 w-5 text-cyan-400" />}
+            icon={<ClipboardList className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />}
             title="考核通过"
             value={`${passedChapters}/${stats.total_chapters}`}
             subtitle="60分及格"
           />
           <StatCard
-            icon={<Award className="h-5 w-5 text-yellow-400" />}
+            icon={<Award className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />}
             title="平均成绩"
             value={examedChapters > 0 ? `${avgExamScore.toFixed(1)}分` : '-'}
             subtitle={examedChapters > 0 ? `已考核 ${examedChapters} 章` : '暂未考核'}
           />
           <StatCard
-            icon={<Flame className="h-5 w-5 text-orange-400" />}
+            icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />}
             title="连续学习"
             value={`${stats.current_streak} 天`}
             subtitle={stats.longest_streak > 0 ? `最长 ${stats.longest_streak} 天` : undefined}
@@ -221,9 +221,9 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
         {(stats.completed_chapters > 0 || passedChapters > 0) && (
           <div className="space-y-2">
             {stats.completed_chapters > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
-                <Trophy className="h-5 w-5 text-blue-500" />
-                <span className="text-sm">
+              <div className="flex items-start sm:items-center gap-2 p-2.5 sm:p-3 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <span className="text-xs sm:text-sm leading-relaxed break-words">
                   {stats.completed_chapters >= stats.total_chapters
                     ? '恭喜你完成了所有章节的学习！'
                     : stats.completed_chapters >= stats.total_chapters / 2
@@ -233,9 +233,9 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
               </div>
             )}
             {passedChapters > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-                <Award className="h-5 w-5 text-yellow-500" />
-                <span className="text-sm">
+              <div className="flex items-start sm:items-center gap-2 p-2.5 sm:p-3 rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <span className="text-xs sm:text-sm leading-relaxed break-words">
                   {passedChapters >= stats.total_chapters
                     ? '所有章节考核全部通过！学霸认证！'
                     : avgExamScore >= 90

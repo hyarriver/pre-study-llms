@@ -203,12 +203,13 @@ export default function ChapterDetail() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="notebook">Notebook</TabsTrigger>
-          <TabsTrigger value="readme">README</TabsTrigger>
-          <TabsTrigger value="exam" className="flex items-center gap-1">
-            <ClipboardList className="h-4 w-4" />
-            章节考核
+        <TabsList className="w-full sm:w-auto flex-wrap sm:flex-nowrap">
+          <TabsTrigger value="notebook" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">Notebook</TabsTrigger>
+          <TabsTrigger value="readme" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">README</TabsTrigger>
+          <TabsTrigger value="exam" className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">
+            <ClipboardList className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">章节考核</span>
+            <span className="sm:hidden">考核</span>
             {examStatus && examStatus.best_percentage > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs rounded bg-primary/20 text-primary">
                 {examStatus.best_percentage.toFixed(0)}分
@@ -248,7 +249,7 @@ export default function ChapterDetail() {
               {readmeLoading ? (
                 <div className="text-center py-8">加载 README 内容中...</div>
               ) : readmeContent ? (
-                <div>
+                <div className="prose prose-invert max-w-none break-words overflow-wrap-anywhere">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}

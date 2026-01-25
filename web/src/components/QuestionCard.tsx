@@ -91,16 +91,16 @@ export default function QuestionCard({
   }
 
   return (
-    <Card className="mb-4">
-      <CardContent className="pt-6">
+    <Card className="mb-3 sm:mb-4">
+      <CardContent className="pt-4 sm:pt-6">
         {/* 题目头部 */}
-        <div className="flex items-start gap-3 mb-4">
-          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">
+        <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm sm:text-base">
             {index}
           </span>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
+              <span className="text-xs px-1.5 sm:px-2 py-0.5 rounded bg-muted text-muted-foreground">
                 {getQuestionTypeLabel(question.question_type)}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -109,7 +109,7 @@ export default function QuestionCard({
               {showResult && answerDetail && (
                 <span
                   className={cn(
-                    'text-xs px-2 py-0.5 rounded',
+                    'text-xs px-1.5 sm:px-2 py-0.5 rounded',
                     answerDetail.is_correct
                       ? 'bg-green-500/10 text-green-500'
                       : 'bg-red-500/10 text-red-500'
@@ -122,26 +122,26 @@ export default function QuestionCard({
                 </span>
               )}
             </div>
-            <p className="text-base leading-relaxed">{question.content}</p>
+            <p className="text-sm sm:text-base leading-relaxed break-words">{question.content}</p>
           </div>
         </div>
 
         {/* 选项列表 */}
-        <div className="space-y-2 ml-11">
+        <div className="space-y-2 ml-9 sm:ml-11">
           {question.options?.map((option) => (
             <div
               key={option.key}
               onClick={() => handleOptionClick(option.key)}
               className={cn(
-                'p-3 rounded-lg border-2 transition-all cursor-pointer',
+                'p-2.5 sm:p-3 rounded-lg border-2 transition-all cursor-pointer touch-manipulation min-h-[44px] active:scale-[0.98]',
                 getOptionStyle(option.key),
                 disabled && !showResult && 'cursor-not-allowed opacity-60'
               )}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <span
                   className={cn(
-                    'w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-medium',
+                    'w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0',
                     isOptionSelected(option.key) || showResult
                       ? 'border-current'
                       : 'border-muted-foreground/30'
@@ -149,7 +149,7 @@ export default function QuestionCard({
                 >
                   {option.key}
                 </span>
-                <span className="flex-1">{option.value}</span>
+                <span className="flex-1 text-sm sm:text-base break-words">{option.value}</span>
               </div>
             </div>
           ))}
@@ -157,12 +157,12 @@ export default function QuestionCard({
 
         {/* 答案解析（仅在显示结果时） */}
         {showResult && answerDetail?.explanation && (
-          <div className="mt-4 ml-11 p-3 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-3 sm:mt-4 ml-9 sm:ml-11 p-2.5 sm:p-3 rounded-lg bg-muted/50">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               <span className="font-medium text-foreground">答案解析：</span>
               {answerDetail.explanation}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
               <span className="font-medium text-foreground">正确答案：</span>
               {answerDetail.correct_answer}
             </p>
