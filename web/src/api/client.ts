@@ -4,8 +4,11 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
 
+// 使用环境变量或默认相对路径（生产环境通过反向代理）
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: apiBaseURL,
   headers: { 'Content-Type': 'application/json' },
 })
 
