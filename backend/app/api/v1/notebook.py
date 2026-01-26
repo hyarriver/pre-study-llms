@@ -36,16 +36,25 @@ async def get_readme(
     chapter_service: ChapterService = Depends(get_chapter_service)
 ):
     """获取 README 内容"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     chapter = chapter_service.get_by_id(chapter_id)
     
     if not chapter.readme_path:
         raise HTTPException(status_code=404, detail="章节没有关联的README")
     
     try:
+        logger.info(f"读取README: chapter_id={chapter_id}, path={chapter.readme_path}")
         content = notebook_service.get_readme_content(chapter.readme_path)
+        logger.info(f"README内容长度: {len(content) if content else 0}")
         return {"content": content}
     except FileNotFoundError as e:
+        logger.error(f"README文件未找到: {e}")
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"读取README时出错: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"读取README失败: {str(e)}")
 
 
 @router.get("/{chapter_id}/pdf")
