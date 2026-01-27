@@ -13,7 +13,8 @@ export function processImagePath(src: string, chapterNumber: number): string {
   if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
     return src
   }
-  const cleanPath = src.replace(/^\.\.?\//, '')
+  const cleanPath = src.replace(/^\.\.?\//, '').replace(/^\/+/, '')
+  if (!cleanPath) return ''
   const path = `/api/v1/static/chapter${chapterNumber}/${cleanPath}`
   const base = import.meta.env.VITE_STATIC_BASE
   if (base) return `${String(base).replace(/\/$/, '')}${path}`

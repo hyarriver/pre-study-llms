@@ -12,32 +12,30 @@ interface MarkdownComponentsProps {
   chapterNumber?: number
 }
 
-// 图片组件（带点击放大、占位防布局抖动）
+// 图片组件（带点击放大、固定宽高比防滚动抖动、占位）
 function ImageWithModal({ src, alt, chapterNumber, ...props }: any) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [loaded, setLoaded] = useState(false)
   const imageSrc = processImagePath(src || '', chapterNumber)
+  if (!imageSrc) return <span className="block my-4 text-muted-foreground text-sm">[图片路径无效]</span>
 
   return (
     <>
-      <span className={`block my-4 ${loaded ? '' : 'min-h-[80px]'}`}>
+      <div className="relative my-4 w-full overflow-hidden rounded-lg border shadow-sm bg-muted/20" style={{ aspectRatio: '16/9' }}>
         <img
           {...props}
           src={imageSrc}
           alt={alt ?? ''}
           decoding="async"
-          className="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
+          className="absolute inset-0 w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity touch-manipulation rounded-lg"
           loading="lazy"
-          onLoad={() => setLoaded(true)}
           onClick={() => setIsModalOpen(true)}
           onError={(e) => {
-            setLoaded(true)
             console.error('Image load error:', { original: src, processed: imageSrc, chapter: chapterNumber })
             e.currentTarget.style.border = '2px dashed red'
             e.currentTarget.title = `无法加载图片: ${src}`
           }}
         />
-      </span>
+      </div>
       <ImageModal
         src={imageSrc}
         alt={alt}

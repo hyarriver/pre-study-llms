@@ -196,11 +196,11 @@ export default function ChapterDetail() {
               </div>
             )}
 
-            {/* 当前阅读进度提示 */}
+            {/* 当前阅读进度提示（固定定位，避免随滚动出现/消失时造成整页布局抖动） */}
             {isAuth && readProgress > 0 && readProgress > chapter.completion_percentage && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 text-sm text-blue-400">
-                <Clock className="h-4 w-4" />
-                当前阅读位置: {readProgress}%（进度将自动保存）
+              <div className="fixed bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 text-sm text-blue-400 shadow-lg border border-blue-500/20 max-w-[calc(100vw-2rem)]">
+                <Clock className="h-4 w-4 flex-shrink-0" />
+                <span>阅读 {readProgress}%（自动保存）</span>
               </div>
             )}
 
