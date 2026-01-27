@@ -14,8 +14,8 @@ export function processImagePath(src: string, chapterNumber: number): string {
     return src
   }
   const cleanPath = src.replace(/^\.\.?\//, '')
-  const path = `/static/chapter${chapterNumber}/${cleanPath}`
-  // 若 API 与前端不同域，需设置 VITE_STATIC_BASE（如 https://api.example.com）
+  // 使用 /api/v1/static，仅需网关代理 /api 即可，无需单独配置 /static
+  const path = `/api/v1/static/chapter${chapterNumber}/${cleanPath}`
   const base = import.meta.env.VITE_STATIC_BASE
   return base ? `${base.replace(/\/$/, '')}${path}` : path
 }

@@ -53,15 +53,14 @@ npm run build
 # 将 dist 目录部署到你的网关/Web 服务器
 ```
 
-### 4. 网关配置（**必须同时代理 /api 和 /static**）
+### 4. 网关配置
 
-后端容器不直接对外暴露，**必须**在网关中把 `/api` 和 `/static` 都反向代理到后端，否则：
-- 只代理 `/api`：接口正常，但 **Notebook/README 中的图片无法加载**（/static 未转发）；
-- 未代理 `/static`：章节内的 `documents` 图片、PDF 等静态资源会 404。
+后端容器不直接对外暴露，需在网关把 **`/api`** 反向代理到后端。  
+**图片等静态资源**已改为通过 **`/api/v1/static/*`** 提供，因此**只需代理 `/api`，图片即可加载**，无需单独配置 `/static`。
 
 **要点：**
 - 后端服务：`dive-into-llms-backend:8000`（若网关与 compose 同网，如 `caddy-network`，可直接用容器名）
-- **必须**配置：`/api` → 后端、`/static` → 后端
+- **必须**：`/api` → 后端（`/api/v1/static` 会一并转发）
 
 **Nginx 示例：**
 
@@ -73,21 +72,15 @@ location /api {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 }
-
-# 图片、PDF 等静态资源，必须转发到后端
-location /static {
-    proxy_pass http://dive-into-llms-backend:8000;
-    proxy_set_header Host $host;
-}
 ```
 
 **Caddy 示例：**
 
 ```caddy
-# 假设与后端在同一 Docker 网络，可用容器名
-/api/*    { reverse_proxy dive-into-llms-backend:8000 }
-/static/* { reverse_proxy dive-into-llms-backend:8000 }
+/api/*  { reverse_proxy dive-into-llms-backend:8000 }
 ```
+
+（仍保留根路径的 `/static` 挂载时，可额外代理 `location /static` 作为备用，非必须。）
 
 ### 5. 访问应用
 
@@ -171,10 +164,9 @@ docker inspect dive-into-llms-backend | grep -A 10 Health
    - 容器已配置为不暴露端口，所有流量通过网关
 
 4. **图片不加载、Notebook/README 中图片 404**:
-   - **网关必须把 `/static` 也转发到后端**。若只配置了 `/api`，接口正常但图片会 404。参见上文「网关配置」的 Nginx/Caddy 示例，**务必包含 `location /static`**。
-   - 非 Docker（Nginx 反向代理到本机后端）：同样需要 `location /static { proxy_pass http://127.0.0.1:8000; ... }`。
-   - 同时确认 `documents` 目录可用：Docker 需挂载 `./documents:/app/documents`；非 Docker 需在项目根存在 `documents/` 且后端从 `backend` 目录启动。
-   - 自检：`GET /api/test-image` 中 `image_exists: true`、`documents_path` 正确即表示正常。
+   - 图片已走 **`/api/v1/static/*`**，只要网关将 **`/api`** 转发到后端即可，无需单独配置 `/static`。
+   - 确认 `documents` 目录可用：Docker 需挂载 `./documents:/app/documents`；非 Docker 需在项目根存在 `documents/` 且后端从 `backend` 目录启动。
+   - 自检：`GET /api/test-image` 中 `image_exists: true`；再直接请求 `GET /api/v1/static/chapter1/assets/0.png` 应返回图片。
 
 5. **章节考核显示「本章节暂无考核试题」**:
    - 试题来自 `documents/exam_questions.json`，初次启动时写入数据库。若该文件在首次启动时不存在或路径错误，试题不会被导入。
