@@ -43,10 +43,14 @@ app.add_middleware(
 )
 
 # 挂载静态文件（用于提供图片等资源）
-documents_path = Path(__file__).parent.parent / "documents"
+# 兼容两种部署：Docker 下为 /app/documents；本地/PM2 下为 项目根/documents
+_def = Path(__file__).resolve().parent
+documents_path = _def / "documents" if (_def / "documents").exists() else _def.parent / "documents"
 if documents_path.exists():
     app.mount("/static", StaticFiles(directory=str(documents_path), html=True), name="static")
     print(f"静态文件服务已挂载: {documents_path} -> /static")
+else:
+    logger.warning(f"documents 目录不存在，/static 未挂载。请检查: {documents_path}")
 
 # 注册API路由
 app.include_router(api_router, prefix="/api/v1")

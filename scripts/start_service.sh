@@ -78,16 +78,16 @@ else
             chmod +x start.sh
             pm2 start start.sh --name "dive-into-llms-api" --cwd "$BACKEND_DIR"
         else
-            pm2 start venv/bin/python --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+            pm2 start venv/bin/python --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn main:app --host 0.0.0.0 --port 8000
         fi
     elif [ "$UVICORN_CMD" = "uvicorn" ]; then
-        pm2 start uvicorn --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
+        pm2 start uvicorn --name "dive-into-llms-api" -- main:app --host 0.0.0.0 --port 8000
     else
         # 使用 Python 模块方式（需要解析命令）
         if [[ "$UVICORN_CMD" == *"python3"* ]]; then
-            pm2 start python3 --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+            pm2 start python3 --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn main:app --host 0.0.0.0 --port 8000
         else
-            pm2 start python --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+            pm2 start python --name "dive-into-llms-api" --interpreter none --cwd "$BACKEND_DIR" -- -m uvicorn main:app --host 0.0.0.0 --port 8000
         fi
     fi
 fi

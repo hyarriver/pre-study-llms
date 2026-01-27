@@ -161,9 +161,14 @@ docker inspect dive-into-llms-backend | grep -A 10 Health
 3. **端口冲突**: 
    - 容器已配置为不暴露端口，所有流量通过网关
 
-4. **权限问题**: 确保 Docker 有权限访问项目目录
+4. **学习文件（Notebook/PDF/图片）打不开**:
+   - **Docker 部署**：必须使用 `compose.yml` 中的卷挂载，确保 `./documents` 和 `./pics` 已挂载到容器。单独 `docker run` 而不挂载会导致文档 404。
+   - **非 Docker（PM2/裸 uvicorn）**：在项目根目录执行 `git pull`，保证存在 `documents/`；后端须从 `项目根/backend` 启动（如 `cd backend && uvicorn main:app`），这样才能正确解析 `../documents`。
+   - 可调用 `GET /api/test-image` 自查：`documents_path` 与 `image_exists` 为 `true` 即表示文档目录已正确识别。
 
-5. **数据库初始化失败**: 检查 `backend/data/` 目录权限
+5. **权限问题**: 确保 Docker 有权限访问项目目录
+
+6. **数据库初始化失败**: 检查 `backend/data/` 目录权限
 
 ### 查看详细日志
 
