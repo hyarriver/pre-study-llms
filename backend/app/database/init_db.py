@@ -130,9 +130,10 @@ def init_db():
 
 def init_exam_questions(db):
     """初始化考试试题数据"""
-    # 试题JSON文件路径
-    questions_file = Path(__file__).parent.parent.parent.parent / "documents" / "exam_questions.json"
-    
+    # 试题JSON路径：兼容 Docker（/app/documents）与本地（项目根/documents）
+    base = Path(__file__).resolve().parent.parent.parent  # backend 或 /app
+    docs = (base / "documents") if (base / "documents").exists() else (base.parent / "documents")
+    questions_file = docs / "exam_questions.json"
     if not questions_file.exists():
         print(f"试题文件不存在: {questions_file}")
         return

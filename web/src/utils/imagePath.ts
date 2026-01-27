@@ -10,18 +10,12 @@
  */
 export function processImagePath(src: string, chapterNumber: number): string {
   if (!src) return ''
-  
-  // 如果是绝对URL或base64，直接返回
   if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
     return src
   }
-  
-  // 如果是相对路径，转换为静态资源路径
-  // 移除开头的 ./ 或 ../
-  let cleanPath = src.replace(/^\.\.?\//, '')
-  
-  // 构建完整的静态资源路径
-  // 静态文件挂载在 /static，指向 documents 目录
-  // 所以 chapter1/assets/0.png 应该访问 /static/chapter1/assets/0.png
-  return `/static/chapter${chapterNumber}/${cleanPath}`
+  const cleanPath = src.replace(/^\.\.?\//, '')
+  const path = `/static/chapter${chapterNumber}/${cleanPath}`
+  // 若 API 与前端不同域，需设置 VITE_STATIC_BASE（如 https://api.example.com）
+  const base = import.meta.env.VITE_STATIC_BASE
+  return base ? `${base.replace(/\/$/, '')}${path}` : path
 }
