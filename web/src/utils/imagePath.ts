@@ -14,8 +14,15 @@ export function processImagePath(src: string, chapterNumber: number): string {
     return src
   }
   const cleanPath = src.replace(/^\.\.?\//, '')
-  // 使用 /api/v1/static，仅需网关代理 /api 即可，无需单独配置 /static
   const path = `/api/v1/static/chapter${chapterNumber}/${cleanPath}`
   const base = import.meta.env.VITE_STATIC_BASE
-  return base ? `${base.replace(/\/$/, '')}${path}` : path
+  if (base) return `${String(base).replace(/\/$/, '')}${path}`
+  // 若 API 与前端不同域且已配置 VITE_API_BASE_URL，用其 origin 作为图片根
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  if (apiBase && /^https?:\/\//i.test(String(apiBase))) {
+    try {
+      return `${new URL(apiBase).origin}${path}`
+    } catch { /* ignore */ }
+  }
+  return path
 }

@@ -227,6 +227,38 @@ cp backend/data/backup-YYYYMMDD.db backend/data/learning_platform.db
 docker-compose up -d
 ```
 
+## 微信登录
+
+微信登录使用**微信公众号网页授权**（仅支持微信内置浏览器 H5），需**已认证服务号**或[微信公众平台接口测试号](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)。
+
+### 配置步骤
+
+1. 在公众号（或接口测试号）后台配置 **网页授权域名**：  
+   - 路径：设置与开发 → 接口权限 → 网页授权  
+   - 填写域名（不含 `http://`），如 `yourdomain.com` 或 `xxx.ngrok.io`
+
+2. 在 `backend/.env` 中增加：
+
+   ```env
+   WECHAT_APP_ID=你的公众号AppID
+   WECHAT_APP_SECRET=你的公众号AppSecret
+   WEB_APP_BASE_URL=https://yourdomain.com
+   ```
+
+   `WEB_APP_BASE_URL` 须与网页授权域名一致（协议 + 域名，可含端口）；生产环境须使用 **HTTPS**。
+
+### 本地开发
+
+微信不支持 `http://localhost` 作为回调。需用 **内网穿透**（如 [ngrok](https://ngrok.com/)、[natapp](https://natapp.cn/)）将前端暴露为 `https://xxx.ngrok.io`，在公众号网页授权域名中配置该域名，并设置：
+
+```env
+WEB_APP_BASE_URL=https://xxx.ngrok.io
+```
+
+不配置上述三项环境变量时，`GET /auth/wechat/authorize` 会返回 501「微信登录未配置」。
+
+---
+
 ## 安全建议
 
 1. ✅ 修改默认的 `SECRET_KEY` 和 `WEBHOOK_SECRET`

@@ -12,30 +12,32 @@ interface MarkdownComponentsProps {
   chapterNumber?: number
 }
 
-// 图片组件（带点击放大功能）
+// 图片组件（带点击放大、占位防布局抖动）
 function ImageWithModal({ src, alt, chapterNumber, ...props }: any) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const imageSrc = processImagePath(src || '', chapterNumber)
 
   return (
     <>
-      <img
-        {...props}
-        src={imageSrc}
-        alt={alt}
-        className="max-w-full h-auto rounded-lg border shadow-sm my-4 cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
-        loading="lazy"
-        onClick={() => setIsModalOpen(true)}
-        onError={(e) => {
-          console.error('Image load error:', {
-            original: src,
-            processed: imageSrc,
-            chapter: chapterNumber,
-          })
-          e.currentTarget.style.border = '2px dashed red'
-          e.currentTarget.title = `无法加载图片: ${src}`
-        }}
-      />
+      <span className={`block my-4 ${loaded ? '' : 'min-h-[80px]'}`}>
+        <img
+          {...props}
+          src={imageSrc}
+          alt={alt ?? ''}
+          decoding="async"
+          className="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer hover:opacity-90 transition-opacity touch-manipulation"
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onClick={() => setIsModalOpen(true)}
+          onError={(e) => {
+            setLoaded(true)
+            console.error('Image load error:', { original: src, processed: imageSrc, chapter: chapterNumber })
+            e.currentTarget.style.border = '2px dashed red'
+            e.currentTarget.title = `无法加载图片: ${src}`
+          }}
+        />
+      </span>
       <ImageModal
         src={imageSrc}
         alt={alt}

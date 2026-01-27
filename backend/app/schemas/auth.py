@@ -40,9 +40,9 @@ class PhoneLoginOrRegister(BaseModel):
         return v
 
 
-class WeChatMockLogin(BaseModel):
-    """微信模拟登录请求（使用本地 mock openid）"""
-    openid: str
+class WeChatCallbackIn(BaseModel):
+    """微信 OAuth 回调：用 code 换 openid 并登录"""
+    code: str
 
 
 class Token(BaseModel):
@@ -56,6 +56,8 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    nickname: str | None = None
+    avatar_url: str | None = None
 
     class Config:
         from_attributes = True

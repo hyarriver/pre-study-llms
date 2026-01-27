@@ -39,24 +39,37 @@ export default function ChapterDetail() {
     reportInterval: 30,  // 每30秒上报一次
   })
 
-  // 监听滚动计算阅读进度
+  // 监听滚动计算阅读进度（节流 + rAF，减轻滚动时的布局抖动）
   useEffect(() => {
+    let raf = 0
+    let last = 0
+    const throttleMs = 120
+
     const handleScroll = () => {
       if (!contentRef.current) return
-      
-      const element = contentRef.current
-      const scrollTop = window.scrollY
-      const docHeight = element.offsetHeight
-      const windowHeight = window.innerHeight
-      const scrollPercent = Math.min(
-        100,
-        Math.round((scrollTop / (docHeight - windowHeight)) * 100)
-      )
-      setReadProgress(Math.max(0, scrollPercent))
+      const now = Date.now()
+      if (raf) return
+      if (now - last < throttleMs) return
+      last = now
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const el = contentRef.current
+        if (!el) return
+        const docHeight = el.offsetHeight
+        const winH = window.innerHeight
+        const denom = docHeight - winH
+        const pct = denom > 0
+          ? Math.min(100, Math.round((window.scrollY / denom) * 100))
+          : 0
+        setReadProgress((prev) => (pct !== prev ? pct : prev))
+      })
     }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
   }, [])
 
   const handleProgressUpdate = async (percentage: number) => {

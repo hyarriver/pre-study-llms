@@ -3,6 +3,7 @@
 """
 import json
 from pathlib import Path
+from sqlalchemy import text
 from app.database.base import Base
 from app.database.session import engine
 from app.models import Chapter, Progress, Note, User, Question, ExamRecord
@@ -10,10 +11,24 @@ from app.database.session import SessionLocal
 from datetime import datetime
 
 
+def _add_column_if_not_exists(column_name: str, type_: str):
+    """对已有 SQLite 表安全添加列（列已存在则忽略）"""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE users ADD COLUMN {column_name} {type_}"))
+            conn.commit()
+    except Exception:
+        pass  # 如 duplicate column name 等，忽略
+
+
 def init_db():
     """初始化数据库，创建所有表"""
     Base.metadata.create_all(bind=engine)
-    
+
+    # 兼容已有库：为 users 表添加 nickname、avatar_url（若不存在）
+    _add_column_if_not_exists("nickname", "VARCHAR(100)")
+    _add_column_if_not_exists("avatar_url", "VARCHAR(500)")
+
     # 初始化章节数据
     db = SessionLocal()
     try:

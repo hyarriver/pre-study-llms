@@ -13,7 +13,7 @@ export interface AuthState {
   isChecked: boolean
   login: (phone: string, password: string) => Promise<void>
   loginWithUsername: (username: string, password: string) => Promise<void>
-  loginWithWeChat: (openid: string) => Promise<void>
+  wechatExchangeCode: (code: string) => Promise<void>
   register: (username: string, email: string, password: string) => Promise<void>
   logout: () => void
   setToken: (token: string | null) => void
@@ -57,14 +57,13 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      loginWithWeChat: async (openid: string) => {
+      wechatExchangeCode: async (code: string) => {
         set({ isLoading: true })
         try {
-          const { data } = await authApi.wechatMockLogin({ openid })
-          const token = data.access_token
-          set({ token })
-          const { data: user } = await authApi.me()
-          set({ user, isLoading: false, isChecked: true })
+          const { data } = await authApi.wechatCallback({ code })
+          set({ token: data.access_token })
+          await get().fetchMe()
+          set({ isLoading: false })
         } catch (e: unknown) {
           set({ isLoading: false })
           throw e

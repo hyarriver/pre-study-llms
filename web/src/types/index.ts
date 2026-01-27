@@ -7,6 +7,8 @@ export interface User {
   id: number
   username: string
   email: string
+  nickname?: string | null
+  avatar_url?: string | null
 }
 
 export interface Token {

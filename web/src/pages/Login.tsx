@@ -7,13 +7,8 @@ import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/store/authStore'
 import { getApiErrorMessage } from '@/lib/utils'
 import { checkBackendHealth } from '@/api/client'
+import { authApi } from '@/api/auth'
 import { BookOpen, Smartphone } from 'lucide-react'
-
-function isMobileDevice() {
-  if (typeof window === 'undefined') return false
-  const ua = window.navigator.userAgent || ''
-  return /Android|iPhone|iPad|iPod/i.test(ua) || window.innerWidth < 768
-}
 
 function isWeChatBrowser() {
   if (typeof window === 'undefined') return false
@@ -27,15 +22,16 @@ export default function Login() {
   const [error, setError] = useState('')
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
   const login = useAuthStore((s) => s.login)
-  const loginWithWeChat = useAuthStore((s) => s.loginWithWeChat)
+  const wechatExchangeCode = useAuthStore((s) => s.wechatExchangeCode)
   const isLoading = useAuthStore((s) => s.isLoading)
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search] = useSearchParams()
   const redirect = search.get('redirect') ?? '/chapters'
+  const state = search.get('state') || '/chapters'
+  const code = search.get('code')
 
-  const mobile = isMobileDevice()
   const wechat = isWeChatBrowser()
 
   const probeBackend = useCallback(async () => {
@@ -75,20 +71,11 @@ export default function Login() {
     }
   }
 
-  const handleWeChatLogin = async () => {
+  const handleWeChatLogin = useCallback(async () => {
     setError('')
     try {
-      // 本地生成一个稳定的 mock openid，模拟微信登录
-      const key = 'mock_wechat_openid'
-      let openid = localStorage.getItem(key)
-      if (!openid) {
-        openid = `mock_${Math.random().toString(36).slice(2, 10)}`
-        localStorage.setItem(key, openid)
-      }
-      await loginWithWeChat(openid)
-      await queryClient.invalidateQueries({ queryKey: ['chapters'] })
-      await queryClient.invalidateQueries({ queryKey: ['chapter'] })
-      navigate(redirect, { replace: true })
+      const { data } = await authApi.wechatAuthorize({ redirect })
+      window.location.href = data.authorize_url
     } catch (err: unknown) {
       if (import.meta.env?.DEV) {
         const ax = err as { response?: { status?: number; data?: unknown } }
@@ -96,19 +83,30 @@ export default function Login() {
       }
       setError(getApiErrorMessage(err, '微信登录失败，请重试'))
     }
-  }
+  }, [redirect])
 
-  // 若在手机端且微信内置浏览器，且未登录，则尝试自动触发一次微信登录
+  // 微信回调：/login?code=...&state=...，用 code 换 token 后跳转
   useEffect(() => {
-    if (user || !mobile || !wechat) return
-    // 避免页面刚加载时的闪烁，稍微延迟
-    const timer = setTimeout(() => {
-      handleWeChatLogin().catch(() => {
-        // 静默失败，留在当前页由用户手动点击
+    if (!code) return
+    wechatExchangeCode(code)
+      .then(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['chapters'] })
+        await queryClient.invalidateQueries({ queryKey: ['chapter'] })
+        navigate(state, { replace: true })
       })
+      .catch((err: unknown) => {
+        setError(getApiErrorMessage(err, '微信登录失败，请重试'))
+      })
+  }, [code, wechatExchangeCode, queryClient, navigate, state])
+
+  // 若在微信内置浏览器且未登录且无 code，则自动跳转微信授权
+  useEffect(() => {
+    if (user || !wechat || code) return
+    const timer = setTimeout(() => {
+      handleWeChatLogin().catch(() => {})
     }, 300)
     return () => clearTimeout(timer)
-  }, [user, mobile, wechat])
+  }, [user, wechat, code, handleWeChatLogin])
 
   return (
     <div className="mx-auto max-w-sm space-y-4 sm:space-y-6 pt-6 sm:pt-12 px-4">
@@ -194,16 +192,20 @@ export default function Login() {
               type="button"
               variant="outline"
               className="w-full flex items-center justify-center gap-2 min-h-[48px] text-base"
-              disabled={isLoading}
+              disabled={isLoading || !wechat}
               onClick={handleWeChatLogin}
             >
               <span className="inline-flex items-center gap-2">
-                {/* 用简单图标文字替代缺失的 WechatLogo 图标 */}
                 <span className="inline-block h-3 w-3 rounded-full bg-green-500 flex-shrink-0" />
-                微信一键登录（模拟）
+                微信一键登录
               </span>
             </Button>
-            {mobile && wechat && (
+            {!wechat && (
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                请在微信中打开此页面使用微信登录。
+              </p>
+            )}
+            {wechat && (
               <p className="mt-2 text-xs text-muted-foreground text-center">
                 已检测到微信内置浏览器，系统会自动尝试微信登录。
               </p>

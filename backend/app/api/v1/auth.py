@@ -12,12 +12,13 @@ from app.schemas.auth import (
     UserRegister,
     UserLogin,
     PhoneLoginOrRegister,
-    WeChatMockLogin,
+    WeChatCallbackIn,
     Token,
     UserResponse,
 )
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.core.auth import get_current_user
+from app.services.wechat_service import get_authorize_url, exchange_code_for_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -91,32 +92,47 @@ async def phone_login_or_register(data: PhoneLoginOrRegister, db: Session = Depe
         raise HTTPException(status_code=500, detail="登录服务异常，请稍后重试")
 
 
-@router.post("/wechat/mock-login", response_model=Token)
-async def wechat_mock_login(data: WeChatMockLogin, db: Session = Depends(get_db)):
+@router.get("/wechat/authorize")
+async def wechat_authorize(redirect: str = "/chapters"):
+    """返回微信网页授权 URL，前端 location.href 跳转"""
+    url = get_authorize_url(redirect)
+    return {"authorize_url": url}
+
+
+@router.post("/wechat/callback", response_model=Token)
+async def wechat_callback(data: WeChatCallbackIn, db: Session = Depends(get_db)):
     """
-    微信模拟登录：
-    - 使用本地 mock openid 生成或查找用户
-    - 方便本地/教学环境调试，后续可替换为正式微信 OAuth
+    微信 OAuth 回调：用 code 换 openid，拉取昵称/头像，查或建用户后签发 JWT。
     """
     try:
-        username = f"wx_{data.openid}"
-        auto_email = f"{data.openid}@wx.local"
+        openid, nickname, headimgurl = await exchange_code_for_user(data.code)
+        username = f"wx_{openid}"
+        auto_email = f"{openid}@wx.local"
         user = db.query(User).filter(User.username == username).first()
         if not user:
             user = User(
                 username=username,
                 email=auto_email,
-                hashed_password=get_password_hash(data.openid),
+                hashed_password=get_password_hash("wx:" + openid),
+                nickname=nickname,
+                avatar_url=headimgurl,
             )
             db.add(user)
             db.commit()
             db.refresh(user)
+        else:
+            if nickname is not None:
+                user.nickname = nickname
+            if headimgurl is not None:
+                user.avatar_url = headimgurl
+            db.commit()
+            db.refresh(user)
         token = create_access_token(data={"sub": str(user.id), "username": user.username})
-        return Token(access_token=str(token))
+        return Token(access_token=token)
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("wechat mock-login error: %s", e)
+        logger.exception("wechat callback error: %s", e)
         raise HTTPException(status_code=500, detail="微信登录服务异常，请稍后重试")
 
 
@@ -127,4 +143,6 @@ async def get_me(current_user: User = Depends(get_current_user)):
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
+        nickname=getattr(current_user, "nickname", None),
+        avatar_url=getattr(current_user, "avatar_url", None),
     )
