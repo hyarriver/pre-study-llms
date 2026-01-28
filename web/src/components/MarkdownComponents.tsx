@@ -2,7 +2,7 @@
  * Markdown 组件配置
  * 用于统一配置 ReactMarkdown 的自定义组件
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Components } from 'react-markdown'
 import CodeBlock from './CodeBlock'
 import { processImagePath } from '@/utils/imagePath'
@@ -12,32 +12,64 @@ interface MarkdownComponentsProps {
   chapterNumber?: number
 }
 
-// 图片组件（带点击放大、固定宽高比防滚动抖动、占位）
+// 图片组件（带点击放大、固定宽高比防滚动抖动、占位、失败时尝试 /static 备用）
 function ImageWithModal({ src, alt, chapterNumber, ...props }: any) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [error, setError] = useState(false)
+  const [triedFallback, setTriedFallback] = useState(false)
+
   const imageSrc = processImagePath(src || '', chapterNumber)
+  const cleanPath = (src || '').replace(/^\.\.?\//, '').replace(/^\/+/, '')
+  // 优先 /api/v1/static（与网关只代理 /api 的部署一致），失败再试 /static/
+  const primarySrc = imageSrc
+  const fallbackSrc = imageSrc.startsWith('http') ? '' : (cleanPath ? `/static/chapter${chapterNumber}/${cleanPath}` : '')
+  const [currentSrc, setCurrentSrc] = useState(primarySrc)
+
+  useEffect(() => {
+    setCurrentSrc(imageSrc)
+    setError(false)
+    setTriedFallback(false)
+  }, [imageSrc])
+
   if (!imageSrc) return <span className="block my-4 text-muted-foreground text-sm">[图片路径无效]</span>
+
+  const handleError = () => {
+    if (!triedFallback && fallbackSrc) {
+      setTriedFallback(true)
+      setCurrentSrc(fallbackSrc)
+      setError(false)
+    } else {
+      setError(true)
+    }
+  }
+
+  const displaySrc = currentSrc || imageSrc
 
   return (
     <>
       <div className="relative my-4 w-full overflow-hidden rounded-lg border shadow-sm bg-muted/20" style={{ aspectRatio: '16/9' }}>
-        <img
-          {...props}
-          src={imageSrc}
-          alt={alt ?? ''}
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity touch-manipulation rounded-lg"
-          loading="lazy"
-          onClick={() => setIsModalOpen(true)}
-          onError={(e) => {
-            console.error('Image load error:', { original: src, processed: imageSrc, chapter: chapterNumber })
-            e.currentTarget.style.border = '2px dashed red'
-            e.currentTarget.title = `无法加载图片: ${src}`
-          }}
-        />
+        {!error && (
+          <img
+            {...props}
+            src={displaySrc}
+            alt={alt ?? ''}
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity touch-manipulation rounded-lg"
+            loading="lazy"
+            onClick={() => setIsModalOpen(true)}
+            onError={handleError}
+          />
+        )}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+            <span>图片加载失败</span>
+            <span className="text-xs break-all max-w-full">{displaySrc}</span>
+            <span className="text-xs">请确认后端已启动（默认 8000 端口）且 /api、/static 已代理到后端</span>
+          </div>
+        )}
       </div>
       <ImageModal
-        src={imageSrc}
+        src={displaySrc}
         alt={alt}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

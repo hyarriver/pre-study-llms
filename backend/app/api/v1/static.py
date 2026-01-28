@@ -18,12 +18,25 @@ _docs = _def / "documents" if (_def / "documents").exists() else _def.parent / "
 _STATIC_HEADERS = {"Cache-Control": "public, max-age=86400"}
 
 
+@router.get("/_check")
+async def static_check():
+    """排查图片不加载：返回 documents 路径及示例文件是否存在。"""
+    sample = _docs / "chapter1" / "assets" / "0.png"
+    return {
+        "documents": str(_docs),
+        "documents_exists": _docs.exists(),
+        "sample_path": str(sample),
+        "sample_exists": sample.is_file() if _docs.exists() else False,
+    }
+
+
 @router.get("/{path:path}")
 async def serve_static(path: str):
     if not _docs.exists():
         raise HTTPException(status_code=404, detail="documents 未挂载")
+    path = path.lstrip("/")  # 兼容前导 /，避免 400
     # 防止路径穿越
-    if ".." in path or path.startswith("/"):
+    if ".." in path or not path:
         raise HTTPException(status_code=400, detail="invalid path")
     file_path = _docs / path
     try:
