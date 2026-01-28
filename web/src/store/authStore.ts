@@ -1,5 +1,5 @@
 /**
- * 认证状态与操作
+ * 认证状态与操作：昵称登录/注册
  */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -11,10 +11,7 @@ export interface AuthState {
   token: string | null
   isLoading: boolean
   isChecked: boolean
-  login: (phone: string, password: string) => Promise<void>
-  loginWithUsername: (username: string, password: string) => Promise<void>
-  wechatExchangeCode: (code: string) => Promise<void>
-  register: (username: string, email: string, password: string) => Promise<void>
+  login: (nickname: string, password: string) => Promise<void>
   logout: () => void
   setToken: (token: string | null) => void
   setUser: (user: User | null) => void
@@ -29,52 +26,13 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       isChecked: false,
 
-      login: async (phone: string, password: string) => {
+      login: async (nickname: string, password: string) => {
         set({ isLoading: true })
         try {
-          const { data } = await authApi.phoneLoginOrRegister({ phone, password })
-          const token = data.access_token
-          set({ token })
-          const { data: user } = await authApi.me()
-          set({ user, isLoading: false, isChecked: true })
-        } catch (e: unknown) {
-          set({ isLoading: false })
-          throw e
-        }
-      },
-
-      loginWithUsername: async (username: string, password: string) => {
-        set({ isLoading: true })
-        try {
-          const { data } = await authApi.login({ username, password })
-          const token = data.access_token
-          set({ token })
-          const { data: user } = await authApi.me()
-          set({ user, isLoading: false, isChecked: true })
-        } catch (e: unknown) {
-          set({ isLoading: false })
-          throw e
-        }
-      },
-
-      wechatExchangeCode: async (code: string) => {
-        set({ isLoading: true })
-        try {
-          const { data } = await authApi.wechatCallback({ code })
+          const { data } = await authApi.nicknameLoginOrRegister({ nickname, password })
           set({ token: data.access_token })
-          await get().fetchMe()
-          set({ isLoading: false })
-        } catch (e: unknown) {
-          set({ isLoading: false })
-          throw e
-        }
-      },
-
-      register: async (username: string, email: string, password: string) => {
-        set({ isLoading: true })
-        try {
-          await authApi.register({ username, email, password })
-          await get().loginWithUsername(username, password)
+          const { data: user } = await authApi.me()
+          set({ user, isLoading: false, isChecked: true })
         } catch (e: unknown) {
           set({ isLoading: false })
           throw e

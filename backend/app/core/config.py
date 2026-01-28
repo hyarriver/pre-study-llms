@@ -32,11 +32,16 @@ class Settings(BaseSettings):
     # 项目根目录
     BASE_DIR: Optional[str] = None
 
-    # 微信网页授权（公众号 / 接口测试号）
+    # 微信网页授权（公众号 / 接口测试号）- 仅微信内置浏览器
     # 须在公众平台配置网页授权域名，且 WEB_APP_BASE_URL 的域名须在其内
     WECHAT_APP_ID: str = ""
     WECHAT_APP_SECRET: str = ""
     WEB_APP_BASE_URL: str = "http://localhost:3000"  # 前端页面根，用于拼 redirect_uri；生产须 https
+
+    # 微信开放平台-网站应用 扫码登录（PC 扫码，与公众号不同 AppID/Secret）
+    # 须在开放平台创建网站应用、配置授权回调域（WEB_APP_BASE_URL 的域名）
+    WECHAT_OPEN_APP_ID: str = ""
+    WECHAT_OPEN_APP_SECRET: str = ""
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod

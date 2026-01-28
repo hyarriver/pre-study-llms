@@ -19,6 +19,13 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       # CORS 配置：已设置为允许所有来源（在代码中硬编码）
       - WEBHOOK_SECRET=${WEBHOOK_SECRET:-}
+      # 微信网页授权（公众号/测试号）；Docker 部署时通过项目根 .env 或 environment 传入
+      - WECHAT_APP_ID=${WECHAT_APP_ID:-}
+      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET:-}
+      - WEB_APP_BASE_URL=${WEB_APP_BASE_URL:-}
+      # 微信扫码登录（开放平台-网站应用），与公众号为不同 AppID/Secret
+      - WECHAT_OPEN_APP_ID=${WECHAT_OPEN_APP_ID:-}
+      - WECHAT_OPEN_APP_SECRET=${WECHAT_OPEN_APP_SECRET:-}
     volumes:
       # 挂载数据库文件目录
       - ./backend/data:/app/data

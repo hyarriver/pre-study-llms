@@ -5,44 +5,22 @@ import re
 from pydantic import BaseModel, field_validator
 
 
-class UserRegister(BaseModel):
-    """注册请求（用户名/邮箱注册，保留以兼容旧逻辑）"""
-    username: str
-    email: str
+class NicknameLoginOrRegister(BaseModel):
+    """昵称一体化登录/注册：昵称作为唯一登录标识，注册时校验重复"""
+
+    nickname: str
     password: str
 
-    @field_validator("email")
+    @field_validator("nickname")
     @classmethod
-    def email_format(cls, v: str) -> str:
-        if not re.match(r"^[^@]+@[^@]+\.[^@]+$", v):
-            raise ValueError("邮箱格式无效")
-        return v.lower().strip()
-
-
-class UserLogin(BaseModel):
-    """用户名登录请求"""
-    username: str
-    password: str
-
-
-class PhoneLoginOrRegister(BaseModel):
-    """手机号一体化登录/注册"""
-    phone: str
-    password: str
-
-    @field_validator("phone")
-    @classmethod
-    def phone_format(cls, v: str) -> str:
+    def nickname_format(cls, v: str) -> str:
         v = v.strip()
-        # 简单手机号校验（11 位数字）
-        if not re.match(r"^\d{11}$", v):
-            raise ValueError("手机号格式无效")
+        if len(v) < 2 or len(v) > 20:
+            raise ValueError("昵称长度为 2～20 个字符")
+        # 允许中文、字母、数字、下划线、短横线
+        if not re.match(r"^[\u4e00-\u9fa5a-zA-Z0-9_\-]+$", v):
+            raise ValueError("昵称仅支持中文、字母、数字、下划线和短横线")
         return v
-
-
-class WeChatCallbackIn(BaseModel):
-    """微信 OAuth 回调：用 code 换 openid 并登录"""
-    code: str
 
 
 class Token(BaseModel):

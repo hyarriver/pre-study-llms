@@ -7,32 +7,19 @@ import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/store/authStore'
 import { getApiErrorMessage } from '@/lib/utils'
 import { checkBackendHealth } from '@/api/client'
-import { authApi } from '@/api/auth'
-import { BookOpen, Smartphone } from 'lucide-react'
-
-function isWeChatBrowser() {
-  if (typeof window === 'undefined') return false
-  const ua = window.navigator.userAgent || ''
-  return /MicroMessenger/i.test(ua)
-}
+import { BookOpen, User } from 'lucide-react'
 
 export default function Login() {
-  const [phone, setPhone] = useState('')
+  const [nickname, setNickname] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
   const login = useAuthStore((s) => s.login)
-  const wechatExchangeCode = useAuthStore((s) => s.wechatExchangeCode)
   const isLoading = useAuthStore((s) => s.isLoading)
-  const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search] = useSearchParams()
   const redirect = search.get('redirect') ?? '/chapters'
-  const state = search.get('state') || '/chapters'
-  const code = search.get('code')
-
-  const wechat = isWeChatBrowser()
 
   const probeBackend = useCallback(async () => {
     setBackendOnline(null)
@@ -48,13 +35,21 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const raw = phone.trim()
+    const raw = nickname.trim()
     if (!raw || !password) {
-      setError('请填写手机号和密码')
+      setError('请填写昵称和密码')
       return
     }
-    if (!/^\d{11}$/.test(raw)) {
-      setError('请输入 11 位手机号')
+    if (raw.length < 2 || raw.length > 20) {
+      setError('昵称长度为 2～20 个字符')
+      return
+    }
+    if (!/^[\u4e00-\u9fa5a-zA-Z0-9_\-]+$/.test(raw)) {
+      setError('昵称仅支持中文、字母、数字、下划线和短横线')
+      return
+    }
+    if (password.length < 6) {
+      setError('密码至少 6 位')
       return
     }
     try {
@@ -70,43 +65,6 @@ export default function Login() {
       setError(getApiErrorMessage(err, '登录/注册失败，请重试'))
     }
   }
-
-  const handleWeChatLogin = useCallback(async () => {
-    setError('')
-    try {
-      const { data } = await authApi.wechatAuthorize({ redirect })
-      window.location.href = data.authorize_url
-    } catch (err: unknown) {
-      if (import.meta.env?.DEV) {
-        const ax = err as { response?: { status?: number; data?: unknown } }
-        console.error('[Login] 微信登录失败:', ax?.response?.status, ax?.response?.data, err)
-      }
-      setError(getApiErrorMessage(err, '微信登录失败，请重试'))
-    }
-  }, [redirect])
-
-  // 微信回调：/login?code=...&state=...，用 code 换 token 后跳转
-  useEffect(() => {
-    if (!code) return
-    wechatExchangeCode(code)
-      .then(async () => {
-        await queryClient.invalidateQueries({ queryKey: ['chapters'] })
-        await queryClient.invalidateQueries({ queryKey: ['chapter'] })
-        navigate(state, { replace: true })
-      })
-      .catch((err: unknown) => {
-        setError(getApiErrorMessage(err, '微信登录失败，请重试'))
-      })
-  }, [code, wechatExchangeCode, queryClient, navigate, state])
-
-  // 若在微信内置浏览器且未登录且无 code，则自动跳转微信授权
-  useEffect(() => {
-    if (user || !wechat || code) return
-    const timer = setTimeout(() => {
-      handleWeChatLogin().catch(() => {})
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [user, wechat, code, handleWeChatLogin])
 
   return (
     <div className="mx-auto max-w-sm space-y-4 sm:space-y-6 pt-6 sm:pt-12 px-4">
@@ -124,7 +82,7 @@ export default function Login() {
             请先在 <code className="rounded bg-muted px-1">backend</code> 目录运行：
             <br />
             <code className="mt-1 block rounded bg-muted px-2 py-1 text-xs">
-              uv run python -m uvicorn main:app --port 8001
+              uv run python -m uvicorn main:app --port 8000
             </code>
           </p>
           <Button
@@ -142,21 +100,23 @@ export default function Login() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">登录 / 注册</CardTitle>
-          <CardDescription className="text-sm">使用手机号或微信登录，学习进度将自动云端同步</CardDescription>
+          <CardDescription className="text-sm">
+            使用昵称和密码登录，学习进度将自动云端同步。昵称唯一，首次填写即完成注册。
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6">
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
-                <Smartphone className="h-4 w-4 flex-shrink-0" />
-                手机号
+                <User className="h-4 w-4 flex-shrink-0" />
+                昵称
               </label>
               <Input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="请输入 11 位手机号"
-                autoComplete="tel"
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="2～20 字符，中文、字母、数字、下划线、短横线"
+                autoComplete="username"
                 disabled={isLoading}
                 className="min-h-[44px] text-base"
               />
@@ -167,7 +127,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码（首次输入即为注册密码）"
+                placeholder="至少 6 位（首次输入即为注册密码）"
                 autoComplete="current-password"
                 disabled={isLoading}
                 className="min-h-[44px] text-base"
@@ -175,42 +135,12 @@ export default function Login() {
             </div>
             {error && <p className="text-sm text-destructive break-words">{error}</p>}
             <Button type="submit" className="w-full min-h-[48px] text-base" disabled={isLoading}>
-              {isLoading ? '处理中…' : '手机号登录 / 注册'}
+              {isLoading ? '处理中…' : '昵称登录 / 注册'}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              首次使用时，输入手机号和密码将自动完成注册，无需单独注册按钮。
+              昵称不可与现有用户重复，注册时会自动校验。
             </p>
           </form>
-
-          <div className="relative">
-            <div className="flex items-center my-4">
-              <span className="flex-1 h-px bg-border" />
-              <span className="px-2 text-xs text-muted-foreground">或</span>
-              <span className="flex-1 h-px bg-border" />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 min-h-[48px] text-base"
-              disabled={isLoading || !wechat}
-              onClick={handleWeChatLogin}
-            >
-              <span className="inline-flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded-full bg-green-500 flex-shrink-0" />
-                微信一键登录
-              </span>
-            </Button>
-            {!wechat && (
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                请在微信中打开此页面使用微信登录。
-              </p>
-            )}
-            {wechat && (
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                已检测到微信内置浏览器，系统会自动尝试微信登录。
-              </p>
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>
