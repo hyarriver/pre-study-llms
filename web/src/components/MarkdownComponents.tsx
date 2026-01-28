@@ -47,7 +47,7 @@ function ImageWithModal({ src, alt, chapterNumber, ...props }: any) {
 
   return (
     <>
-      <div className="relative my-4 w-full overflow-hidden rounded-lg border shadow-sm bg-muted/20" style={{ aspectRatio: '16/9' }}>
+      <div className="relative my-4 w-full max-h-[400px] overflow-hidden rounded-lg border shadow-sm bg-muted/20" style={{ aspectRatio: '16/9' }}>
         {!error && (
           <img
             {...props}
