@@ -47,13 +47,18 @@ echo ""
 
 # 2. Python 依赖（必须在虚拟环境中安装，避免 PEP 668 externally-managed-environment）
 cd "$BACKEND_DIR"
-if [ -d "$VENV_DIR" ]; then
+VENV_ACTIVATE="$VENV_DIR/bin/activate"
+if [ -f "$VENV_ACTIVATE" ]; then
     echo "使用已有虚拟环境: $VENV_DIR"
+elif [ -d "$VENV_DIR" ]; then
+    echo -e "${YELLOW}检测到不完整的 venv 目录，正在重建...${NC}"
+    rm -rf "$VENV_DIR"
+    python3 -m venv "$VENV_DIR"
 else
-    echo "未检测到虚拟环境，正在创建 $VENV_DIR ..."
+    echo "正在创建虚拟环境: $VENV_DIR ..."
     python3 -m venv "$VENV_DIR"
 fi
-source "$VENV_DIR/bin/activate"
+source "$VENV_ACTIVATE"
 
 echo "升级 pip..."
 pip install --upgrade pip -q
