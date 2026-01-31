@@ -195,85 +195,96 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <FolderOpen className="h-6 w-6" />
-        管理员中心
-      </h1>
-      <p className="text-muted-foreground text-sm">
-        待审核、全部提交记录与学习目录管理
-      </p>
+    <div className="space-y-6 max-w-4xl mx-auto pb-8">
+      <header className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2.5 text-foreground">
+          <FolderOpen className="h-6 w-6 sm:h-7 sm:w-7 text-primary/90" />
+          管理员中心
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+          待审核、全部提交记录与学习目录管理
+        </p>
+      </header>
 
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="w-full flex-wrap h-auto gap-1">
-          <TabsTrigger value="pending" className="flex-1 min-w-0">
+        <TabsList className="w-full flex-wrap h-auto gap-1.5 p-1.5 rounded-xl min-h-[48px]">
+          <TabsTrigger
+            value="pending"
+            className="flex-1 min-w-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-white/5"
+          >
             待审核 ({pending.length})
           </TabsTrigger>
-          <TabsTrigger value="all" className="flex-1 min-w-0">
+          <TabsTrigger
+            value="all"
+            className="flex-1 min-w-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-white/5"
+          >
             全部提交记录
           </TabsTrigger>
-          <TabsTrigger value="chapters" className="flex-1 min-w-0">
+          <TabsTrigger
+            value="chapters"
+            className="flex-1 min-w-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-white/5"
+          >
             学习目录管理
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-6">
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+          <Card variant="glass" className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <FileText className="h-5 w-5 text-primary/80" />
                 待审核列表
               </CardTitle>
-              <CardDescription>共 {pending.length} 项待审核</CardDescription>
+              <CardDescription className="leading-relaxed">共 {pending.length} 项待审核</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {pendingLoading ? (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <li key={i} className="p-4 rounded-lg border bg-muted/30 space-y-3">
-                      <div className="flex justify-between items-start gap-2">
+                    <li key={i} className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-3">
+                      <div className="flex justify-between items-start gap-3">
                         <div className="min-w-0 flex-1 space-y-2">
                           <Skeleton className="h-5 w-48" />
                           <Skeleton className="h-4 w-full" />
                           <Skeleton className="h-3 w-64" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <Skeleton className="h-8 w-16 rounded-md" />
-                          <Skeleton className="h-8 w-14 rounded-md" />
-                          <Skeleton className="h-8 w-14 rounded-md" />
+                          <Skeleton className="h-9 w-16 rounded-lg" />
+                          <Skeleton className="h-9 w-14 rounded-lg" />
+                          <Skeleton className="h-9 w-14 rounded-lg" />
                         </div>
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : pending.length === 0 ? (
-                <p className="text-muted-foreground text-sm">暂无待审核项</p>
+                <p className="text-muted-foreground text-sm leading-relaxed py-6">暂无待审核项</p>
               ) : (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {pending.map((s) => (
-                    <li key={s.id} className="p-4 rounded-lg border bg-muted/30 space-y-3">
-                      <div className="flex justify-between items-start gap-2">
+                    <li key={s.id} className="p-4 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors space-y-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-lg">{s.title}</p>
+                          <p className="font-medium text-base sm:text-lg">{s.title}</p>
                           {s.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
                               {s.description}
                             </p>
                           )}
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
                             提交人：{s.user_nickname || s.user_username || '-'} ·{' '}
                             {new Date(s.created_at).toLocaleString()} · {s.file_type.toUpperCase()}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1">
+                          <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 transition-opacity hover:opacity-90">
                             <Eye className="h-4 w-4" /> 预览
                           </Button>
                           <Button
                             size="sm"
                             onClick={() => approveMutation.mutate(s.id)}
                             disabled={approveMutation.isPending}
-                            className="gap-1 bg-green-600 hover:bg-green-700"
+                            className="gap-1 bg-green-600 hover:bg-green-700 text-white transition-opacity"
                           >
                             <CheckCircle2 className="h-4 w-4" /> 通过
                           </Button>
@@ -282,27 +293,28 @@ export default function AdminPage() {
                             size="sm"
                             onClick={() => setRejectingId(s.id)}
                             disabled={rejectMutation.isPending}
-                            className="gap-1"
+                            className="gap-1 transition-opacity hover:opacity-90"
                           >
                             <XCircle className="h-4 w-4" /> 驳回
                           </Button>
                         </div>
                       </div>
                       {rejectingId === s.id && (
-                        <div className="pt-3 border-t space-y-2">
+                        <div className="pt-3 mt-3 border-t border-border/60 space-y-3">
                           <textarea
-                            className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="w-full min-h-[80px] rounded-lg border border-input bg-background px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30"
                             placeholder="驳回原因（选填）"
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                           />
                           <div className="flex gap-2">
-                            <Button size="sm" variant="destructive" onClick={handleRejectConfirm}>
+                            <Button size="sm" variant="destructive" onClick={handleRejectConfirm} className="rounded-lg">
                               确认驳回
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
+                              className="rounded-lg"
                               onClick={() => {
                                 setRejectingId(null)
                                 setRejectReason('')
@@ -322,52 +334,52 @@ export default function AdminPage() {
         </TabsContent>
 
         <TabsContent value="all" className="mt-6">
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle>全部提交记录</CardTitle>
-              <CardDescription>含用户已删除记录；可预览、通过、驳回或彻底删除</CardDescription>
+          <Card variant="glass" className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">全部提交记录</CardTitle>
+              <CardDescription className="leading-relaxed">含用户已删除记录；可预览、通过、驳回或彻底删除</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {allLoading ? (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <li key={i} className="p-4 rounded-lg border bg-muted/30">
+                    <li key={i} className="p-4 rounded-xl border border-border/60 bg-muted/20">
                       <Skeleton className="h-5 w-48 mb-2" />
                       <Skeleton className="h-4 w-64" />
                     </li>
                   ))}
                 </ul>
               ) : allSubmissions.length === 0 ? (
-                <p className="text-muted-foreground text-sm">暂无提交记录</p>
+                <p className="text-muted-foreground text-sm leading-relaxed py-6">暂无提交记录</p>
               ) : (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {allSubmissions.map((s) => (
-                    <li key={s.id} className="p-4 rounded-lg border bg-muted/30 space-y-3">
-                      <div className="flex justify-between items-start gap-2">
+                    <li key={s.id} className="p-4 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors space-y-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-lg">{s.title}</p>
+                            <p className="font-medium text-base sm:text-lg">{s.title}</p>
                             {s.deleted_by_user_at && (
-                              <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                              <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
                                 用户已删除
                               </span>
                             )}
                             {s.status === 'pending' && (
-                              <span className="text-xs text-amber-600">待审核</span>
+                              <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">待审核</span>
                             )}
                             {s.status === 'approved' && (
-                              <span className="text-xs text-green-600">已通过</span>
+                              <span className="text-xs px-2 py-0.5 rounded-md bg-green-500/15 text-green-400">已通过</span>
                             )}
                             {s.status === 'rejected' && (
-                              <span className="text-xs text-destructive">已驳回</span>
+                              <span className="text-xs px-2 py-0.5 rounded-md bg-destructive/15 text-destructive">已驳回</span>
                             )}
                           </div>
                           {s.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
                               {s.description}
                             </p>
                           )}
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
                             提交人：{s.user_nickname || s.user_username || '-'} ·{' '}
                             {new Date(s.created_at).toLocaleString()} · {s.file_type.toUpperCase()}
                             {s.chapter_id && (
@@ -386,14 +398,14 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                           {s.status === 'pending' && (
                             <>
-                              <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1">
+                              <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 rounded-lg transition-opacity hover:opacity-90">
                                 <Eye className="h-4 w-4" /> 预览
                               </Button>
                               <Button
                                 size="sm"
                                 onClick={() => approveMutation.mutate(s.id)}
                                 disabled={approveMutation.isPending}
-                                className="gap-1 bg-green-600 hover:bg-green-700"
+                                className="gap-1 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-opacity"
                               >
                                 <CheckCircle2 className="h-4 w-4" /> 通过
                               </Button>
@@ -402,14 +414,14 @@ export default function AdminPage() {
                                 size="sm"
                                 onClick={() => setRejectingId(s.id)}
                                 disabled={rejectMutation.isPending}
-                                className="gap-1"
+                                className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                               >
                                 <XCircle className="h-4 w-4" /> 驳回
                               </Button>
                             </>
                           )}
                           {s.status !== 'pending' && (
-                            <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 rounded-lg transition-opacity hover:opacity-90">
                               <Eye className="h-4 w-4" /> 预览
                             </Button>
                           )}
@@ -420,12 +432,14 @@ export default function AdminPage() {
                                 variant="destructive"
                                 onClick={() => adminDeleteSubmissionMutation.mutate(s.id)}
                                 disabled={adminDeleteSubmissionMutation.isPending}
+                                className="rounded-lg"
                               >
                                 确认删除
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="rounded-lg"
                                 onClick={() => setDeletingSubmissionId(null)}
                               >
                                 取消
@@ -435,7 +449,7 @@ export default function AdminPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive rounded-lg transition-opacity hover:opacity-90"
                               onClick={() => setDeletingSubmissionId(s.id)}
                               disabled={adminDeleteSubmissionMutation.isPending}
                               title="彻底删除记录"
@@ -455,12 +469,13 @@ export default function AdminPage() {
 
         <TabsContent value="chapters" className="mt-6">
           {editingChapter && (
-            <Card variant="glass" className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle>编辑章节</CardTitle>
+            <Card variant="glass" className="mb-6 overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xl">编辑章节</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="rounded-lg hover:bg-muted/50 transition-colors"
                   onClick={() => {
                     setEditingChapter(null)
                     setEditForm({})
@@ -469,12 +484,13 @@ export default function AdminPage() {
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">序号</label>
+              <CardContent className="space-y-4 pt-0">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">序号</label>
                   <Input
                     type="number"
                     min={1}
+                    className="rounded-lg"
                     value={editForm.chapter_number ?? ''}
                     onChange={(e) =>
                       setEditForm((f) => ({
@@ -484,57 +500,63 @@ export default function AdminPage() {
                     }
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">标题</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">标题</label>
                   <Input
+                    className="rounded-lg"
                     value={editForm.title ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">简介</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">简介</label>
                   <Input
+                    className="rounded-lg"
                     value={editForm.description ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Notebook 路径</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">Notebook 路径</label>
                   <Input
+                    className="rounded-lg font-mono text-sm"
                     value={editForm.notebook_path ?? ''}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, notebook_path: e.target.value || null }))
                     }
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">README 路径</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">README 路径</label>
                   <Input
+                    className="rounded-lg font-mono text-sm"
                     value={editForm.readme_path ?? ''}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, readme_path: e.target.value || null }))
                     }
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">PDF 路径</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground block">PDF 路径</label>
                   <Input
+                    className="rounded-lg font-mono text-sm"
                     value={editForm.pdf_path ?? ''}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, pdf_path: e.target.value || null }))
                     }
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <Button
                     onClick={submitEdit}
                     disabled={updateChapterMutation.isPending}
-                    className="gap-1"
+                    className="gap-1 rounded-lg"
                   >
                     <Save className="h-4 w-4" /> 保存
                   </Button>
                   <Button
                     variant="outline"
+                    className="rounded-lg"
                     onClick={() => {
                       setEditingChapter(null)
                       setEditForm({})
@@ -547,37 +569,38 @@ export default function AdminPage() {
             </Card>
           )}
 
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ListOrdered className="h-5 w-5" />
+          <Card variant="glass" className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <ListOrdered className="h-5 w-5 text-primary/80" />
                 章节列表
               </CardTitle>
-              <CardDescription>共 {chapters.length} 章，可编辑、调整顺序或删除</CardDescription>
+              <CardDescription className="leading-relaxed">共 {chapters.length} 章，可编辑、调整顺序或删除</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {chaptersLoading ? (
-                <p className="text-muted-foreground text-sm">加载中...</p>
+                <p className="text-muted-foreground text-sm leading-relaxed py-6">加载中...</p>
               ) : chapters.length === 0 ? (
-                <p className="text-muted-foreground text-sm">暂无章节</p>
+                <p className="text-muted-foreground text-sm leading-relaxed py-6">暂无章节</p>
               ) : (
                 <ul className="space-y-3">
                   {chapters.map((chapter, index) => (
-                    <li key={chapter.id} className="p-4 rounded-lg border bg-muted/30 space-y-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                    <li key={chapter.id} className="p-4 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/30 transition-colors space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <span className="text-muted-foreground text-sm mr-2">
+                          <span className="text-muted-foreground text-sm font-mono mr-2">
                             #{chapter.chapter_number}
                           </span>
-                          <span className="font-medium">{chapter.title}</span>
+                          <span className="font-medium text-foreground">{chapter.title}</span>
                           {chapter.source_type === 'user_submitted' && (
-                            <span className="ml-2 text-xs text-muted-foreground">(用户提交)</span>
+                            <span className="ml-2 text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground">用户提交</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="rounded-lg transition-opacity hover:opacity-90"
                             onClick={() => moveChapter(index, 'up')}
                             disabled={index === 0 || reorderMutation.isPending}
                             title="上移"
@@ -587,6 +610,7 @@ export default function AdminPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="rounded-lg transition-opacity hover:opacity-90"
                             onClick={() => moveChapter(index, 'down')}
                             disabled={index === chapters.length - 1 || reorderMutation.isPending}
                             title="下移"
@@ -597,7 +621,7 @@ export default function AdminPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => startEdit(chapter)}
-                            className="gap-1"
+                            className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                           >
                             <Pencil className="h-4 w-4" /> 编辑
                           </Button>
@@ -607,7 +631,7 @@ export default function AdminPage() {
                               size="sm"
                               onClick={() => regenerateMutation.mutate(chapter.id)}
                               disabled={regenerateMutation.isPending}
-                              className="gap-1"
+                              className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                               title="补生成 README、Notebook、考核题"
                             >
                               <RefreshCw className="h-4 w-4" /> 补生成
@@ -618,31 +642,33 @@ export default function AdminPage() {
                             size="sm"
                             onClick={() => setDeletingChapterId(chapter.id)}
                             disabled={deleteChapterMutation.isPending}
-                            className="gap-1"
+                            className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                           >
                             <Trash2 className="h-4 w-4" /> 删除
                           </Button>
                         </div>
                       </div>
                       {chapter.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                           {chapter.description}
                         </p>
                       )}
                       {deletingChapterId === chapter.id && (
-                        <div className="pt-2 border-t flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">确认删除该章节？</span>
+                        <div className="pt-3 mt-2 border-t border-border/60 flex flex-wrap items-center gap-2">
+                          <span className="text-sm text-muted-foreground leading-relaxed">确认删除该章节？</span>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => deleteChapterMutation.mutate(chapter.id)}
                             disabled={deleteChapterMutation.isPending}
+                            className="rounded-lg"
                           >
                             确认删除
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
+                            className="rounded-lg"
                             onClick={() => setDeletingChapterId(null)}
                           >
                             取消
