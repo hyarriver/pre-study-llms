@@ -64,6 +64,25 @@ if [ -f "web/package.json" ]; then
     npm install --silent
     log_info "构建前端..."
     npm run build
+    
+    # 同步到 Caddy 容器挂载的目录
+    CADDY_SITE_DIR="/root/i/caddy/site/pre-study-llms"
+    if [ -d "dist" ]; then
+        log_info "同步前端到 Caddy 目录: $CADDY_SITE_DIR"
+        # 使用 rsync 同步（如果没有 rsync，用 cp）
+        if command -v rsync &> /dev/null; then
+            rsync -av --delete dist/ "$CADDY_SITE_DIR/"
+            log_info "前端同步完成（使用 rsync）"
+        else
+            log_warn "rsync 未安装，使用 cp 复制..."
+            rm -rf "$CADDY_SITE_DIR"/*
+            cp -r dist/* "$CADDY_SITE_DIR/"
+            log_info "前端同步完成（使用 cp）"
+        fi
+    else
+        log_error "dist 目录不存在，前端构建可能失败"
+    fi
+    
     cd ..
     log_info "前端构建完成"
 fi
