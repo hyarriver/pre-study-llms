@@ -378,37 +378,6 @@ export default function ChapterDetail() {
               <CardTitle>Jupyter Notebook 内容</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* 分页栏放在 CardContent 第一项，与内容同容器，部署后 DOM 中一定存在 */}
-              <nav
-                role="navigation"
-                aria-label="Notebook 分页"
-                className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-primary/20 border-2 border-primary/40 shadow-lg"
-              >
-                <span className="text-xs font-medium text-primary/90 mr-1">分页</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotebookPage((p) => Math.max(1, p - 1))}
-                  disabled={notebookPage <= 1 || notebookLoading}
-                  className="gap-1 shrink-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  上一页
-                </Button>
-                <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
-                  {notebookLoading ? '加载中…' : `第 ${notebookPage} / ${notebookTotalPages} 页，共 ${notebookTotalCells} 节`}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotebookPage((p) => Math.min(notebookTotalPages, p + 1))}
-                  disabled={notebookPage >= notebookTotalPages || notebookLoading}
-                  className="gap-1 shrink-0"
-                >
-                  下一页
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </nav>
               {notebookLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-8 w-full rounded" />
@@ -419,12 +388,49 @@ export default function ChapterDetail() {
                   <Skeleton className="h-24 w-full rounded" />
                 </div>
               ) : notebookContent ? (
-                <NotebookViewer
-                  cells={notebookCells}
-                  chapterNumber={chapter.chapter_number}
-                  currentPage={notebookPage}
-                  onPageChange={setNotebookPage}
-                />
+                <>
+                  <NotebookViewer
+                    cells={notebookCells}
+                    chapterNumber={chapter.chapter_number}
+                    currentPage={notebookPage}
+                    onPageChange={setNotebookPage}
+                  />
+                  {/* 分页栏放在内容底部；仅一页时只显示「共 X 个单元格」，多页时显示「第 A/B 页，共 X 个单元格」 */}
+                  <nav
+                    role="navigation"
+                    aria-label="Notebook 分页"
+                    className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-primary/20 border-2 border-primary/40 shadow-lg"
+                  >
+                    <span className="text-xs font-medium text-primary/90 mr-1">分页</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setNotebookPage((p) => Math.max(1, p - 1))}
+                      disabled={notebookPage <= 1 || notebookLoading}
+                      className="gap-1 shrink-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      上一页
+                    </Button>
+                    <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
+                      {notebookLoading
+                        ? '加载中…'
+                        : notebookTotalPages <= 1
+                          ? `共 ${notebookTotalCells} 个单元格`
+                          : `第 ${notebookPage} / ${notebookTotalPages} 页，共 ${notebookTotalCells} 个单元格`}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setNotebookPage((p) => Math.min(notebookTotalPages, p + 1))}
+                      disabled={notebookPage >= notebookTotalPages || notebookLoading}
+                      className="gap-1 shrink-0"
+                    >
+                      下一页
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </nav>
+                </>
               ) : (
                 <p className="text-muted-foreground">
                   Notebook 内容加载失败或不存在
