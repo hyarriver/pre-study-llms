@@ -119,11 +119,13 @@ export default function ChapterDetail() {
     'exam',  // 始终包含，无题时由 ExamPanel 显示空状态
   ].filter(Boolean) as string[]
 
-  // 文档学习型章节默认显示文档标签；确保 activeTab 对应存在的标签（须在 return 前，保持 hooks 顺序）
+  // 仅在切换章节时校正 activeTab，避免用户点击考核后被重置回 notebook
+  const prevChapterIdRef = useRef<number | null>(null)
   useEffect(() => {
     if (!chapter || validTabs.length === 0) return
-    const currentValid = validTabs.includes(activeTab)
-    if (!currentValid) {
+    const chapterChanged = prevChapterIdRef.current !== chapter.id
+    prevChapterIdRef.current = chapter.id
+    if (chapterChanged && !validTabs.includes(activeTab)) {
       setActiveTab(validTabs[0])
     }
   }, [chapter?.id, validTabs.join(','), activeTab])

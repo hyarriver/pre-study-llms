@@ -284,9 +284,10 @@ def generate_readme_from_document(
     doc_path: Path,
     title: str,
     description: str = "",
+    use_enhanced: bool = True,
 ) -> Optional[str]:
-    """从文档提取文本并调用 LLM 生成 README 内容（Markdown）。失败返回 None。"""
-    material = extract_document_text(doc_path)
+    """从文档提取文本并调用 LLM 生成 README 内容（Markdown）。失败返回 None。use_enhanced=True 时对扫描版 PDF 使用 OCR。"""
+    material = extract_document_text(doc_path, use_enhanced=use_enhanced)
     if not material.strip():
         logger.warning("文档无有效文本内容，跳过 README 生成")
         return None
@@ -340,7 +341,7 @@ def generate_readme_from_document(
         return None
 
 
-MAX_NOTEBOOK_MATERIAL_CHARS = 14000
+MAX_NOTEBOOK_MATERIAL_CHARS = 50000  # 提高上限以覆盖长文档，避免 notebook 不全
 
 
 def _material_to_cells_fallback(material: str, title: str, description: str) -> List[str]:
@@ -384,17 +385,25 @@ def generate_notebook_from_document(
     doc_path: Path,
     title: str,
     description: str = "",
+    use_enhanced: bool = True,
 ) -> Optional[List[str]]:
     """
     从文档提取文本并生成 Jupyter Notebook 的 markdown cells。
     优先调用 LLM 结构化生成；若 LLM 不可用或失败，则按文档正文切分生成，确保包含完整内容。
+    use_enhanced=True 时对扫描版 PDF 使用 OCR（Tesseract/Pipeline）。
     """
-    material = extract_document_text(doc_path)
+    material = extract_document_text(doc_path, use_enhanced=use_enhanced)
     if not material.strip():
         logger.warning("文档无有效文本内容，跳过 Notebook 生成")
         return None
     if len(material) > MAX_NOTEBOOK_MATERIAL_CHARS:
         material = material[:MAX_NOTEBOOK_MATERIAL_CHARS] + "\n\n[内容已截断]"
+
+    # 超长文档优先用 fallback 保证完整性，LLM 易截断
+    FALLBACK_THRESHOLD = 25000
+    if len(material) > FALLBACK_THRESHOLD:
+        logger.info("文档较长(%d 字)，使用正文切分生成以保证完整", len(material))
+        return _material_to_cells_fallback(material, title, description)
 
     # 尝试 LLM 生成
     try:
@@ -436,6 +445,7 @@ def generate_notebook_from_document(
                 {"role": "user", "content": user},
             ],
             temperature=0.3,
+            max_tokens=16384,  # 确保长 notebook 不被截断
         )
         raw = (resp.choices[0].message.content or "").strip()
         if not raw:
