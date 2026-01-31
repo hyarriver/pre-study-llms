@@ -2,7 +2,7 @@
  * Notebook 查看器组件
  * 支持代码高亮、Markdown渲染和图片显示
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
@@ -11,6 +11,10 @@ import { detectLanguage } from '@/utils/detectLanguage'
 import CodeBlock from '@/components/CodeBlock'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
 import ImageModal from '@/components/ImageModal'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+const PAGE_SIZE = 8
 
 interface NotebookViewerProps {
   cells: NotebookCell[]
@@ -19,6 +23,15 @@ interface NotebookViewerProps {
 
 export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerProps) {
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const totalPages = Math.max(1, Math.ceil(cells.length / PAGE_SIZE))
+  const visibleCells = cells.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const showPagination = cells.length > PAGE_SIZE
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [chapterNumber])
 
   // 渲染代码输出（包括图片）
   const renderOutputs = (outputs: any[]) => {
@@ -101,7 +114,9 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
   return (
     <>
       <div className="space-y-3 sm:space-y-4">
-        {cells.map((cell, index) => (
+        {visibleCells.map((cell, idx) => {
+          const index = (currentPage - 1) * PAGE_SIZE + idx
+          return (
         <div
           key={index}
           className={`rounded-lg border overflow-hidden ${
@@ -138,9 +153,39 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
             </div>
           )}
         </div>
-      ))}
+        )
+        })}
       </div>
-      
+
+      {/* 分页栏 */}
+      {showPagination && (
+        <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            上一页
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            第 {currentPage}/{totalPages} 页
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="gap-1"
+          >
+            下一页
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* 图片模态框 */}
       {modalImage && (
         <ImageModal

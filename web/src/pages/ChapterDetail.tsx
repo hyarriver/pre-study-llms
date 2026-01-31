@@ -128,7 +128,8 @@ export default function ChapterDetail() {
     if (chapterChanged && !validTabs.includes(activeTab)) {
       setActiveTab(validTabs[0])
     }
-  }, [chapter?.id, validTabs.join(','), activeTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在章节/validTabs 变化时校正，避免覆盖用户点击
+  }, [chapter?.id, validTabs.join(',')])
 
   if (chapterLoading) {
     return (
