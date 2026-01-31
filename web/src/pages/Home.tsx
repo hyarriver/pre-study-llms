@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { BookOpen, ArrowRight, Sparkles, Code, Brain, Zap, Shield, Cpu, Layers, Bot, Lock } from 'lucide-react'
+import { BookOpen, ArrowRight, Sparkles, Code, Brain, Zap, Shield, Cpu, Layers, Bot, Lock, Clock, CheckCircle2 } from 'lucide-react'
 import NeuralNetworkBackground from '@/components/NeuralNetworkBackground'
 import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
 import { useAuthStore } from '@/store/authStore'
+import { useStudyStatistics } from '@/hooks/useProgress'
 
 const chapters = [
   { num: '01', title: '微调与部署', desc: '预训练模型微调与部署指南', icon: Cpu },
@@ -19,8 +20,18 @@ const chapters = [
   { num: '11', title: 'RLHF对齐', desc: '基于PPO的安全对齐', icon: Lock },
 ]
 
+function formatStudyTime(seconds: number): string {
+  if (seconds < 60) return `${seconds}秒`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}分钟`
+  const hours = Math.floor(minutes / 60)
+  const rem = minutes % 60
+  return rem === 0 ? `${hours}小时` : `${hours}小时${rem}分钟`
+}
+
 export default function Home() {
   const isAuth = !!useAuthStore((s) => s.user)
+  const { data: stats } = useStudyStatistics()
   
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -40,8 +51,8 @@ export default function Home() {
           {/* 标签 */}
           <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-full glass-card text-xs sm:text-sm text-blue-400">
             <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 animate-pulse" />
-            <span className="hidden sm:inline">上海交通大学 · 自然语言处理前沿技术</span>
-            <span className="sm:hidden">上海交大 · NLP前沿</span>
+            <span className="hidden sm:inline">个人学习记录 · 上海交通大学《动手学大模型》</span>
+            <span className="sm:hidden">个人学习记录 · 动手学大模型</span>
           </div>
           
           {/* 主标题 */}
@@ -51,11 +62,11 @@ export default function Home() {
           
           {/* 副标题 */}
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/70 max-w-3xl mx-auto leading-relaxed px-4">
-            系列编程实践教程，覆盖大模型
-            <span className="text-blue-400 font-semibold"> 微调 </span>·
-            <span className="text-purple-400 font-semibold"> 推理 </span>·
-            <span className="text-cyan-400 font-semibold"> 安全 </span>
-            等多个核心主题
+            记录
+            <span className="text-blue-400 font-semibold"> 学习进度 </span>·
+            <span className="text-purple-400 font-semibold"> 章节考核 </span>·
+            <span className="text-cyan-400 font-semibold"> 笔记复习 </span>
+            ，系统掌握大模型核心
           </p>
           
           {/* CTA 按钮 */}
@@ -74,20 +85,45 @@ export default function Home() {
             </Button>
           </div>
           
-          {/* 统计数据 */}
+          {/* 统计数据：已登录显示个人进度，未登录显示概览 */}
           <div className="flex justify-center gap-4 sm:gap-6 md:gap-12 pt-4 sm:pt-6 md:pt-8 flex-wrap px-4">
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">11</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">章节教程</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">100%</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">开源免费</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">实战</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">代码驱动</div>
-            </div>
+            {isAuth && stats ? (
+              <>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">
+                    {stats.completed_chapters}/{stats.total_chapters}
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">已学章节</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">
+                    {formatStudyTime(stats.total_study_time_seconds)}
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">累计学习</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">
+                    {Math.round(stats.overall_progress)}%
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">总进度</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">11</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">章节教程</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">100%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">开源免费</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">实战</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">代码驱动</div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -98,10 +134,10 @@ export default function Home() {
               <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex-shrink-0">
                 <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground">系统教程</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">学习进度</h3>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              11 个精心设计的章节，从入门到进阶，涵盖大模型开发全流程
+              每章完成度与学习时长自动记录，总进度与章节考核成绩一目了然
             </p>
           </div>
 
@@ -110,10 +146,10 @@ export default function Home() {
               <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex-shrink-0">
                 <Code className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground">实践导向</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">章节考核</h3>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              每章配套完整 Jupyter Notebook，边学边练，快速上手
+              每章配套单选/判断题，成绩计入进度；支持从 PDF/README 生成题目
             </p>
           </div>
 
@@ -122,10 +158,10 @@ export default function Home() {
               <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 flex-shrink-0">
                 <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground">前沿技术</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">Notebook + PDF</h3>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              涵盖 RLHF、知识编辑、多模态等热门研究方向
+              在线阅读 Notebook 与 README，每章 PDF 可下载或在线打开
             </p>
           </div>
         </div>
@@ -188,13 +224,13 @@ export default function Home() {
         {/* 底部 CTA */}
         <div className="py-12 sm:py-16 text-center px-4">
           <div className="glass-card rounded-2xl p-6 sm:p-8 md:p-12 max-w-3xl mx-auto">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 gradient-text">准备好开始学习了吗？</h3>
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 gradient-text">开始我的学习记录</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-              加入数千名学习者，一起探索大模型的无限可能
+              记录进度、完成章节考核，系统掌握大模型核心
             </p>
             <Button asChild size="lg" className="glow-button text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-5 md:py-6 rounded-xl border-0 min-h-[48px] w-full sm:w-auto touch-manipulation">
               <Link to="/chapters">
-                立即开始
+                进入章节
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
             </Button>

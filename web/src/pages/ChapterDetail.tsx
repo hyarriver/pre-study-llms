@@ -14,9 +14,10 @@ import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import NotebookViewer from '@/components/NotebookViewer'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
-import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink } from 'lucide-react'
 import ExamPanel from '@/components/ExamPanel'
 import { useExamStatus } from '@/hooks/useExam'
+import { notebookApi } from '@/api/notebook'
 
 export default function ChapterDetail() {
   const { id } = useParams<{ id: string }>()
@@ -110,6 +111,32 @@ export default function ChapterDetail() {
   }
   
   const readmeContent = readmeData?.content || ''
+  const hasPdf = !!chapter.pdf_path
+
+  const handlePdfDownload = async () => {
+    try {
+      const { data } = await notebookApi.getPdf(chapter.id)
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = chapter.pdf_path?.split('/').pop() || `chapter-${chapter.chapter_number}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('下载 PDF 失败:', e)
+    }
+  }
+
+  const handlePdfOpen = async () => {
+    try {
+      const { data } = await notebookApi.getPdf(chapter.id)
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+    } catch (e) {
+      console.error('打开 PDF 失败:', e)
+    }
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6" ref={contentRef}>
@@ -219,6 +246,12 @@ export default function ChapterDetail() {
         <TabsList className="w-full sm:w-auto flex-wrap sm:flex-nowrap">
           <TabsTrigger value="notebook" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">Notebook</TabsTrigger>
           <TabsTrigger value="readme" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">README</TabsTrigger>
+          {hasPdf && (
+            <TabsTrigger value="pdf" className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="exam" className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">
             <ClipboardList className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">章节考核</span>
@@ -279,6 +312,30 @@ export default function ChapterDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {hasPdf && (
+          <TabsContent value="pdf" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  本章 PDF
+                </CardTitle>
+                <CardDescription>下载或在新窗口中打开本章讲义 PDF</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button onClick={handlePdfDownload} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  下载 PDF
+                </Button>
+                <Button variant="outline" onClick={handlePdfOpen} className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  在新窗口打开
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="exam" className="mt-6">
           <ExamPanel chapterId={chapterId} />
