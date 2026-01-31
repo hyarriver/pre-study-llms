@@ -45,14 +45,15 @@ install_system_deps() {
 install_system_deps
 echo ""
 
-# 2. Python 依赖
+# 2. Python 依赖（必须在虚拟环境中安装，避免 PEP 668 externally-managed-environment）
 cd "$BACKEND_DIR"
 if [ -d "$VENV_DIR" ]; then
     echo "使用已有虚拟环境: $VENV_DIR"
-    source "$VENV_DIR/bin/activate"
 else
-    echo "未检测到虚拟环境，使用当前 Python..."
+    echo "未检测到虚拟环境，正在创建 $VENV_DIR ..."
+    python3 -m venv "$VENV_DIR"
 fi
+source "$VENV_DIR/bin/activate"
 
 echo "升级 pip..."
 pip install --upgrade pip -q
@@ -64,5 +65,8 @@ echo ""
 echo -e "${GREEN}✅ 依赖安装完成。${NC}"
 echo ""
 echo "可选：启用 DocTR（版面/表格识别，体积较大）："
-echo "  pip install doctr torch"
+echo "  source $VENV_DIR/bin/activate && pip install doctr torch"
+echo ""
+echo "启动后端："
+echo "  source $VENV_DIR/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 echo ""
