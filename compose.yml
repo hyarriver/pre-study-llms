@@ -22,8 +22,8 @@ services:
     volumes:
       # 挂载数据库文件目录
       - ./backend/data:/app/data
-      # 挂载文档目录（用于静态文件服务）
-      - ./documents:/app/documents:ro
+      # 挂载文档目录（用于静态文件服务 + 用户上传与审核通过的章节，需可写）
+      - ./documents:/app/documents
       # 挂载图片目录
       - ./pics:/app/pics:ro
     networks:

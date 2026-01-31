@@ -1,10 +1,13 @@
 """
 材料提交与审核 API
 """
+import logging
 import tempfile
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+
+logger = logging.getLogger(__name__)
 from typing import List, Optional
 
 from app.models import User
@@ -57,6 +60,12 @@ async def submit_material(
             file_ext=ext,
         )
         return submission
+    except OSError as e:
+        logger.exception("上传文件保存失败（可能是目录权限）: %s", e)
+        raise HTTPException(status_code=500, detail="无法保存上传文件，请检查服务器配置或联系管理员")
+    except Exception as e:
+        logger.exception("材料提交失败: %s", e)
+        raise
     finally:
         tmp_path.unlink(missing_ok=True)
 

@@ -42,7 +42,11 @@ class MaterialService:
 
     def _ensure_upload_dirs(self):
         """确保上传目录存在"""
-        self.pending_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.pending_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.error("无法创建上传目录 %s: %s（请检查挂载是否为只读）", self.pending_dir, e)
+            raise
 
     def submit(
         self,
