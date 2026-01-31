@@ -27,7 +27,6 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
 
   const totalPages = Math.max(1, Math.ceil(cells.length / PAGE_SIZE))
   const visibleCells = cells.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-  const showPagination = cells.length > PAGE_SIZE
   const totalCells = cells.length
 
   useEffect(() => {
@@ -158,40 +157,34 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
         })}
       </div>
 
-      {/* 分页栏：多页时显示完整分页，单页时仅显示「共 N 节」便于用户知晓总量 */}
-      <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
-        {showPagination ? (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage <= 1}
-              className="gap-1"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              上一页
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              第 {currentPage}/{totalPages} 页，共 {totalCells} 节
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage >= totalPages}
-              className="gap-1"
-            >
-              下一页
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </>
-        ) : (
-          totalCells > 0 && (
-            <span className="text-sm text-muted-foreground">共 {totalCells} 节</span>
-          )
-        )}
-      </div>
+      {/* 分页栏：有内容时始终显示，便于用户看到页码与总量 */}
+      {totalCells > 0 && (
+        <div className="mt-6 flex items-center justify-center gap-3 flex-wrap border-t pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            上一页
+          </Button>
+          <span className="text-sm text-muted-foreground min-w-[8rem] text-center">
+            第 {currentPage} / {totalPages} 页，共 {totalCells} 节
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="gap-1"
+          >
+            下一页
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* 图片模态框 */}
       {modalImage && (

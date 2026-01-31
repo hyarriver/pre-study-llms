@@ -121,7 +121,7 @@ export default function ChapterDetail() {
     setActiveTab(value)
   }
 
-  // 仅在切换章节时校正 activeTab，避免用户点击考核后被重置回 notebook
+  // 仅在切换章节（URL 变化）时校正 activeTab，不依赖 validTabs，避免点击「章节考核」后被误重置回 notebook
   const prevChapterIdRef = useRef<number | null>(null)
   useEffect(() => {
     if (!chapter || validTabs.length === 0) return
@@ -130,8 +130,9 @@ export default function ChapterDetail() {
     if (chapterChanged && !validTabs.includes(activeTab)) {
       setActiveTab(validTabs[0])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在章节/validTabs 变化时校正，避免覆盖用户点击
-  }, [chapter?.id, validTabs.join(',')])
+    // 仅依赖章节 id，用户在同一章内切换 tab 不会触发此 effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 故意只依赖 chapter.id，避免 tab 被误重置
+  }, [chapter?.id])
 
   if (chapterLoading) {
     return (
