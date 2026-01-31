@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { BookOpen, ArrowRight, Sparkles, Code, Brain, Zap, Shield, Cpu, Layers, Bot, Lock, Clock, CheckCircle2 } from 'lucide-react'
+import { BookOpen, ArrowRight, Sparkles, Code, Brain, Zap, Shield, Cpu, Layers, Bot, Lock } from 'lucide-react'
 import NeuralNetworkBackground from '@/components/NeuralNetworkBackground'
 import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
 import { useAuthStore } from '@/store/authStore'
