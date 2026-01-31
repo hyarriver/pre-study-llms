@@ -21,9 +21,12 @@ interface NotebookViewerProps {
   chapterNumber: number
 }
 
-export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerProps) {
+export default function NotebookViewer({ cells: rawCells, chapterNumber }: NotebookViewerProps) {
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+
+  // 防御：API 可能返回 undefined 或非数组，统一为数组
+  const cells = Array.isArray(rawCells) ? rawCells : []
 
   const totalPages = Math.max(1, Math.ceil(cells.length / PAGE_SIZE))
   const visibleCells = cells.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -111,8 +114,13 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
     )
   }
 
-  const paginationBar = totalCells > 0 && (
-    <div className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-muted/60 border border-border/80 shadow-sm">
+  // 分页栏始终显示，便于用户看到分页功能（0 节时也显示「第 1/1 页，共 0 节」）
+  const paginationBar = (
+    <div
+      role="navigation"
+      aria-label="Notebook 分页"
+      className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-muted/70 border-2 border-border shadow-md"
+    >
       <Button
         variant="outline"
         size="sm"
@@ -123,7 +131,7 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
         <ChevronLeft className="h-4 w-4" />
         上一页
       </Button>
-      <span className="text-sm font-medium text-foreground min-w-[10rem] text-center">
+      <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
         第 {currentPage} / {totalPages} 页，共 {totalCells} 节
       </span>
       <Button

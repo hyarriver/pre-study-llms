@@ -376,7 +376,7 @@ export default function ChapterDetail() {
                 </div>
               ) : notebookContent ? (
                 <NotebookViewer 
-                  cells={notebookContent.cells} 
+                  cells={Array.isArray(notebookContent.cells) ? notebookContent.cells : []} 
                   chapterNumber={chapter.chapter_number}
                 />
               ) : (
