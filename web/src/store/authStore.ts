@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'dive-llm-auth',
-      partialize: (s) => ({ token: s.token, user: s.user }),
+      partialize: (s) => ({ token: s.token }),
       onRehydrateStorage: () => (_state, err) => {
         if (err) return
         const store = useAuthStore.getState()

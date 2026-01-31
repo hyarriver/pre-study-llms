@@ -36,29 +36,33 @@ export const useUpdateProgress = () => {
 }
 
 export const useStudyStatistics = () => {
-  const isAuth = !!useAuthStore((s) => s.user)
-  
+  const user = useAuthStore((s) => s.user)
+  const isChecked = useAuthStore((s) => s.isChecked)
+  const isAuth = !!user
+
   return useQuery<StudyStatistics>({
     queryKey: ['study-statistics'],
     queryFn: async () => {
       const response = await progressApi.getStatistics()
       return response.data
     },
-    enabled: isAuth,
+    enabled: isAuth && isChecked,
     staleTime: 30000, // 30秒内不重新请求
   })
 }
 
 export const useStudyHeatmap = (days: number = 365) => {
-  const isAuth = !!useAuthStore((s) => s.user)
-  
+  const user = useAuthStore((s) => s.user)
+  const isChecked = useAuthStore((s) => s.isChecked)
+  const isAuth = !!user
+
   return useQuery<StudyHeatmapData>({
     queryKey: ['study-heatmap', days],
     queryFn: async () => {
       const response = await progressApi.getHeatmap(days)
       return response.data
     },
-    enabled: isAuth,
+    enabled: isAuth && isChecked,
     staleTime: 60000, // 1分钟内不重新请求
   })
 }
