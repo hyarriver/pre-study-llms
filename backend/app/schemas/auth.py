@@ -22,6 +22,13 @@ class NicknameLoginOrRegister(BaseModel):
             raise ValueError("昵称仅支持中文、字母、数字、下划线和短横线")
         return v
 
+    @field_validator("password")
+    @classmethod
+    def password_format(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("密码至少 6 位")
+        return v
+
 
 class Token(BaseModel):
     """Token 响应"""

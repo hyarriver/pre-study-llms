@@ -15,16 +15,16 @@ class NoteService:
     def __init__(self, db: Session):
         self.db = db
     
-    def get_by_chapter_id(self, chapter_id: int) -> List[NoteResponse]:
-        """获取指定章节的所有笔记"""
+    def get_by_chapter_id(self, chapter_id: int, user_id: str) -> List[NoteResponse]:
+        """获取指定章节的当前用户笔记"""
         notes = self.db.query(Note).filter(
             Note.chapter_id == chapter_id,
-            Note.user_id == "default_user"
+            Note.user_id == user_id
         ).order_by(Note.created_at.desc()).all()
         
         return notes
     
-    def create(self, note_data: NoteCreate) -> NoteResponse:
+    def create(self, note_data: NoteCreate, user_id: str) -> NoteResponse:
         """创建新笔记"""
         # 验证章节是否存在
         chapter = self.db.query(Chapter).filter(Chapter.id == note_data.chapter_id).first()
@@ -33,7 +33,7 @@ class NoteService:
         
         new_note = Note(
             chapter_id=note_data.chapter_id,
-            user_id="default_user",
+            user_id=user_id,
             title=note_data.title,
             content=note_data.content
         )
@@ -50,11 +50,11 @@ class NoteService:
             updated_at=new_note.updated_at
         )
     
-    def update(self, note_id: int, note_update: NoteUpdate) -> NoteResponse:
+    def update(self, note_id: int, note_update: NoteUpdate, user_id: str) -> NoteResponse:
         """更新笔记"""
         note = self.db.query(Note).filter(
             Note.id == note_id,
-            Note.user_id == "default_user"
+            Note.user_id == user_id
         ).first()
         
         if not note:
@@ -79,11 +79,11 @@ class NoteService:
             updated_at=note.updated_at
         )
     
-    def delete(self, note_id: int) -> None:
+    def delete(self, note_id: int, user_id: str) -> None:
         """删除笔记"""
         note = self.db.query(Note).filter(
             Note.id == note_id,
-            Note.user_id == "default_user"
+            Note.user_id == user_id
         ).first()
         
         if not note:

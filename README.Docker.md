@@ -227,59 +227,6 @@ cp backend/data/backup-YYYYMMDD.db backend/data/learning_platform.db
 docker-compose up -d
 ```
 
-## 微信登录
-
-微信登录使用**微信公众号网页授权**（仅支持微信内置浏览器 H5），需**已认证服务号**或[微信公众平台接口测试号](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)。
-
-### 配置步骤
-
-1. 在公众号（或接口测试号）后台配置 **网页授权域名**：  
-   - 路径：设置与开发 → 接口权限 → 网页授权  
-   - 填写域名（不含 `http://`），如 `yourdomain.com` 或 `xxx.ngrok.io`
-
-2. 在 `backend/.env` 中增加：
-
-   ```env
-   WECHAT_APP_ID=你的公众号AppID
-   WECHAT_APP_SECRET=你的公众号AppSecret
-   WEB_APP_BASE_URL=https://yourdomain.com
-   ```
-
-   `WEB_APP_BASE_URL` 须与网页授权域名一致（协议 + 域名，可含端口）；生产环境须使用 **HTTPS**。
-
-3. **Docker 部署**：使用 `compose.yml` 时，上述三项需通过 `backend` 的 `environment` 传入。可在**项目根**创建 `.env`，写入 `WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`WEB_APP_BASE_URL`，compose 会自动用其做变量替换；或在运行 `docker-compose` 前 `export` 这三个变量。
-
-### 本地开发
-
-微信不支持 `http://localhost` 作为回调。需用 **内网穿透**（如 [ngrok](https://ngrok.com/)、[natapp](https://natapp.cn/)）将前端暴露为 `https://xxx.ngrok.io`，在公众号网页授权域名中配置该域名，并设置：
-
-```env
-WEB_APP_BASE_URL=https://xxx.ngrok.io
-```
-
-不配置上述三项环境变量时，`GET /auth/wechat/authorize` 会返回 501「微信登录未配置」。
-
-### 微信扫码登录（开放平台-网站应用）
-
-**微信扫码登录**适用于 **PC / 非微信浏览器**：用户点击「微信扫码登录」后跳转至微信开放平台页面，用手机微信扫码并确认，即可在电脑端完成登录。与上述「微信一键登录」不同：扫码使用**微信开放平台-网站应用**的 AppID/AppSecret，与公众号为两套配置。
-
-1. 在 [微信开放平台](https://open.weixin.qq.com/) 注册并认证，创建 **网站应用**，申请 **微信登录** 并通过审核，获得网站应用的 **AppID** 和 **AppSecret**。
-
-2. 在开放平台该网站应用下配置 **授权回调域**：填写 `WEB_APP_BASE_URL` 的域名（仅域名，如 `yourdomain.com`），须与公众号网页授权域名可同可不同，但须能访问到 `{WEB_APP_BASE_URL}/login`。
-
-3. 在 `backend/.env` 或项目根 `.env`（Docker 时）中增加：
-
-   ```env
-   WECHAT_OPEN_APP_ID=你的开放平台网站应用AppID
-   WECHAT_OPEN_APP_SECRET=你的开放平台网站应用AppSecret
-   ```
-
-   `WEB_APP_BASE_URL` 与公众号共用；Docker 下同样通过 compose 的 `environment` 或项目根 `.env` 传入 `WECHAT_OPEN_APP_ID`、`WECHAT_OPEN_APP_SECRET`。
-
-4. 不配置时，`GET /auth/wechat-qr/authorize` 返回 501「微信扫码登录未配置」；非微信浏览器下登录页会显示「微信扫码登录」按钮，配置后点击即跳转扫码页。
-
----
-
 ## 安全建议
 
 1. ✅ 修改默认的 `SECRET_KEY` 和 `WEBHOOK_SECRET`
