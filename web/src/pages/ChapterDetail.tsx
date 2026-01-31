@@ -36,7 +36,8 @@ export default function ChapterDetail() {
   const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId, hasNotebook)
   const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId, hasReadme)
   const { data: examStatus } = useExamStatus(chapterId, { enabled: isAuth })
-  useChapterExamInfo(chapterId, { enabled: !isAuth })
+  const { data: examInfo } = useChapterExamInfo(chapterId, { enabled: !isAuth })
+  const hasExamQuestions = isAuth ? (examStatus?.has_questions ?? false) : (examInfo?.has_questions ?? false)
   const updateProgress = useUpdateProgress()
 
   // 学习时长追踪
@@ -115,6 +116,16 @@ export default function ChapterDetail() {
     hasDocument && 'pdf',
     'exam',  // 始终包含，无题时由 ExamPanel 显示空状态
   ].filter(Boolean) as string[]
+
+  // 点击章节考核时：若无考核题则自动跳转到 Notebook 页（若无 Notebook 则跳转到第一个可用标签）
+  const handleTabChange = (value: string) => {
+    if (value === 'exam' && !hasExamQuestions && validTabs.length > 0) {
+      const fallback = validTabs.find((t) => t !== 'exam') ?? validTabs[0]
+      setActiveTab(fallback)
+      return
+    }
+    setActiveTab(value)
+  }
 
   // 仅在切换章节时校正 activeTab，避免用户点击考核后被重置回 notebook
   const prevChapterIdRef = useRef<number | null>(null)
@@ -326,7 +337,7 @@ export default function ChapterDetail() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full sm:w-auto flex-wrap sm:flex-nowrap">
           {hasNotebook && (
             <TabsTrigger value="notebook" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">Notebook</TabsTrigger>
