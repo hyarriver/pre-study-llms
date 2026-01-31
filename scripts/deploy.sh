@@ -43,9 +43,11 @@ if [ -f "backend/requirements.txt" ]; then
     
     # 检查虚拟环境
     if [ -d "venv" ]; then
-        log_info "使用虚拟环境安装依赖..."
-        venv/bin/pip install --upgrade pip --quiet
-        venv/bin/pip install -r requirements.txt --quiet
+        log_info "使用虚拟环境安装依赖（超时 120s，若仅用 Docker 跑后端可跳过此步）..."
+        venv/bin/pip install --upgrade pip --quiet --timeout 120 2>/dev/null || true
+        venv/bin/pip install -r requirements.txt --quiet --timeout 120 2>/dev/null || {
+            log_warn "pip 安装超时或失败（可能是网络/代理问题）。若后端用 Docker 运行可忽略。"
+        }
     else
         log_warn "未找到虚拟环境 venv，尝试系统 pip..."
         for pip_cmd in "python3 -m pip" "python -m pip" "pip3" "pip"; do
@@ -69,7 +71,7 @@ if [ -f "web/package.json" ]; then
     log_info "更新前端依赖..."
     cd web
     npm install --silent
-    log_info "构建前端..."
+    log_info "构建前端（Vite 会转换较多文件，约 1–2 分钟，请耐心等待）..."
     npm run build
     
     # 同步到 Caddy 容器挂载的目录
