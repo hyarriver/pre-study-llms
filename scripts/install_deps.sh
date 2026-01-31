@@ -60,8 +60,10 @@ else
 fi
 source "$VENV_ACTIVATE"
 
-# 若环境里设置了本机代理(如 127.0.0.1:7890)，pip 可能超时；安装时临时取消代理直连镜像
-unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY 2>/dev/null || true
+# 若环境里设置了本机代理(如 127.0.0.1:7890 或 SOCKS)，pip 可能超时或报 SOCKS 依赖缺失；安装时临时取消所有代理直连镜像
+for _v in HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY all_proxy SOCKS_PROXY socks_proxy PIP_PROXY; do
+    unset "$_v" 2>/dev/null || true
+done
 
 echo "升级 pip..."
 pip install --upgrade pip -q
