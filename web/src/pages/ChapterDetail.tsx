@@ -104,6 +104,23 @@ export default function ChapterDetail() {
     return () => clearTimeout(timer)
   }, [readProgress, chapter?.completion_percentage, chapter?.id, isAuth])
 
+  const hasDocument = !!chapter?.pdf_path
+  const validTabs = [
+    hasNotebook && 'notebook',
+    hasReadme && 'readme',
+    hasDocument && 'pdf',
+    examStatus?.has_questions && 'exam',
+  ].filter(Boolean) as string[]
+
+  // 文档学习型章节默认显示文档标签；确保 activeTab 对应存在的标签（须在 return 前，保持 hooks 顺序）
+  useEffect(() => {
+    if (!chapter || validTabs.length === 0) return
+    const currentValid = validTabs.includes(activeTab)
+    if (!currentValid) {
+      setActiveTab(validTabs[0])
+    }
+  }, [chapter?.id, validTabs.join(','), activeTab])
+
   if (chapterLoading) {
     return <div className="text-center py-12">加载中...</div>
   }
@@ -113,23 +130,7 @@ export default function ChapterDetail() {
   }
   
   const readmeContent = readmeData?.content || ''
-  const hasDocument = !!chapter.pdf_path
   const isDocx = chapter.pdf_path?.toLowerCase().endsWith('.docx')
-
-  // 文档学习型章节（无 notebook）默认显示文档标签；确保 activeTab 对应存在的标签
-  useEffect(() => {
-    if (!chapter) return
-    const validTabs = [
-      hasNotebook && 'notebook',
-      hasReadme && 'readme',
-      hasDocument && 'pdf',
-      examStatus?.has_questions && 'exam',
-    ].filter(Boolean) as string[]
-    const currentValid = validTabs.includes(activeTab)
-    if (!currentValid && validTabs.length > 0) {
-      setActiveTab(validTabs[0])
-    }
-  }, [chapter?.id, hasNotebook, hasReadme, hasDocument, examStatus?.has_questions, activeTab])
 
   const docMimeType = isDocx
     ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
