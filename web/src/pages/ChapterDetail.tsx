@@ -370,42 +370,41 @@ export default function ChapterDetail() {
         </TabsList>
 
         {hasNotebook && (
-        <TabsContent value="notebook" className="mt-6">
+        <TabsContent value="notebook" className="mt-6" forceMount>
           <Card variant="glass">
             <CardHeader className="space-y-3">
               <CardTitle>Jupyter Notebook 内容</CardTitle>
-              {/* 分页栏放在标题下方，与内容同卡内，保证打开 Notebook 即见 */}
-              {!notebookLoading && (
-                <nav
-                  role="navigation"
-                  aria-label="Notebook 分页"
-                  className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-primary/15 border-2 border-primary/30 shadow-md"
+              {/* 分页栏始终渲染，不依赖 loading，保证一定可见 */}
+              <nav
+                role="navigation"
+                aria-label="Notebook 分页"
+                className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-primary/20 border-2 border-primary/40 shadow-lg"
+              >
+                <span className="text-xs font-medium text-primary/90 mr-1">分页</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNotebookPage((p) => Math.max(1, p - 1))}
+                  disabled={notebookPage <= 1 || notebookLoading}
+                  className="gap-1 shrink-0"
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNotebookPage((p) => Math.max(1, p - 1))}
-                    disabled={notebookPage <= 1}
-                    className="gap-1 shrink-0"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    上一页
-                  </Button>
-                  <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
-                    第 {notebookPage} / {notebookTotalPages} 页，共 {notebookTotalCells} 节
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNotebookPage((p) => Math.min(notebookTotalPages, p + 1))}
-                    disabled={notebookPage >= notebookTotalPages}
-                    className="gap-1 shrink-0"
-                  >
-                    下一页
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </nav>
-              )}
+                  <ChevronLeft className="h-4 w-4" />
+                  上一页
+                </Button>
+                <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
+                  {notebookLoading ? '加载中…' : `第 ${notebookPage} / ${notebookTotalPages} 页，共 ${notebookTotalCells} 节`}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNotebookPage((p) => Math.min(notebookTotalPages, p + 1))}
+                  disabled={notebookPage >= notebookTotalPages || notebookLoading}
+                  className="gap-1 shrink-0"
+                >
+                  下一页
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </nav>
             </CardHeader>
             <CardContent>
               {notebookLoading ? (
