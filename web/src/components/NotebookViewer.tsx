@@ -161,7 +161,7 @@ export default function NotebookViewer({ cells: rawCells, chapterNumber, current
 
       <div className="space-y-3 sm:space-y-4 mt-4">
         {visibleCells.map((cell, idx) => {
-          const index = (currentPage - 1) * PAGE_SIZE + idx
+          const index = (currentPage - 1) * NOTEBOOK_PAGE_SIZE + idx
           return (
         <div
           key={index}
