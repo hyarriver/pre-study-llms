@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     
     # 项目根目录
     BASE_DIR: Optional[str] = None
+
+    # 上传配置
+    MAX_UPLOAD_SIZE_MB: int = 20
+    ALLOWED_UPLOAD_EXTENSIONS: list = [".pdf", ".docx"]
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod

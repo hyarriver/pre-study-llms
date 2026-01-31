@@ -63,18 +63,23 @@ async def get_pdf(
     notebook_service: NotebookService = Depends(get_notebook_service),
     chapter_service: ChapterService = Depends(get_chapter_service)
 ):
-    """获取 PDF 文件"""
+    """获取章节文档（PDF 或 DOCX）"""
     chapter = chapter_service.get_by_id(chapter_id)
     
     if not chapter.pdf_path:
-        raise HTTPException(status_code=404, detail="章节没有关联的PDF")
+        raise HTTPException(status_code=404, detail="章节没有关联的文档")
     
     try:
-        pdf_path = notebook_service.get_pdf_path(chapter.pdf_path)
+        doc_path = notebook_service.get_pdf_path(chapter.pdf_path)
+        ext = doc_path.suffix.lower()
+        if ext == ".docx":
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        else:
+            media_type = "application/pdf"
         return FileResponse(
-            path=str(pdf_path),
-            media_type="application/pdf",
-            filename=pdf_path.name
+            path=str(doc_path),
+            media_type=media_type,
+            filename=doc_path.name
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

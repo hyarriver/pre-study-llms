@@ -61,6 +61,21 @@ def extract_pdf_text(pdf_path: str) -> str:
     return "\n\n".join(text_parts)
 
 
+def extract_docx_text(docx_path: str) -> str:
+    """从 DOCX 提取文本"""
+    p = ROOT / docx_path if not Path(docx_path).is_absolute() else Path(docx_path)
+    if not p.exists():
+        return ""
+    try:
+        from docx import Document
+    except ImportError:
+        print("提示: 安装 python-docx 后可提取 DOCX 文本: pip install python-docx", file=sys.stderr)
+        return ""
+    doc = Document(p)
+    parts = [para.text for para in doc.paragraphs if para.text.strip()]
+    return "\n\n".join(parts)
+
+
 def build_material(chapter: dict) -> str:
     readme_path = chapter.get("readme_path") or ""
     pdf_path = chapter.get("pdf_path") or ""
@@ -68,9 +83,16 @@ def build_material(chapter: dict) -> str:
     if readme_path:
         parts.append("## README\n" + read_readme(readme_path))
     if pdf_path:
-        pdf_text = extract_pdf_text(pdf_path)
-        if pdf_text:
-            parts.append("## PDF 正文\n" + pdf_text)
+        p = ROOT / pdf_path if not Path(pdf_path).is_absolute() else Path(pdf_path)
+        ext = p.suffix.lower()
+        if ext == ".docx":
+            doc_text = extract_docx_text(pdf_path)
+            if doc_text:
+                parts.append("## 文档正文\n" + doc_text)
+        else:
+            pdf_text = extract_pdf_text(pdf_path)
+            if pdf_text:
+                parts.append("## PDF 正文\n" + pdf_text)
     material = "\n\n".join(parts).strip()
     if len(material) > MAX_MATERIAL_CHARS:
         material = material[:MAX_MATERIAL_CHARS] + "\n\n[内容已截断]"
@@ -203,7 +225,7 @@ def main():
             existing[key] = []
             continue
         if not material.strip():
-            print(f"跳过 {key}: 无 README/PDF 内容", file=sys.stderr)
+            print(f"跳过 {key}: 无 README/PDF/DOCX 内容", file=sys.stderr)
             continue
         questions = call_llm_generate_questions(num, title, material)
         existing[key] = questions

@@ -28,8 +28,10 @@ export default function ChapterDetail() {
   const [readProgress, setReadProgress] = useState(0)  // 基于滚动的阅读进度
   
   const { data: chapter, isLoading: chapterLoading } = useChapter(chapterId)
-  const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId)
-  const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId)
+  const hasNotebook = !!chapter?.notebook_path
+  const hasReadme = !!chapter?.readme_path
+  const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId, hasNotebook)
+  const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId, hasReadme)
   const { data: examStatus } = useExamStatus(chapterId)
   const updateProgress = useUpdateProgress()
 
@@ -111,30 +113,51 @@ export default function ChapterDetail() {
   }
   
   const readmeContent = readmeData?.content || ''
-  const hasPdf = !!chapter.pdf_path
+  const hasDocument = !!chapter.pdf_path
+  const isDocx = chapter.pdf_path?.toLowerCase().endsWith('.docx')
+
+  // 文档学习型章节（无 notebook）默认显示文档标签；确保 activeTab 对应存在的标签
+  useEffect(() => {
+    if (!chapter) return
+    const validTabs = [
+      hasNotebook && 'notebook',
+      hasReadme && 'readme',
+      hasDocument && 'pdf',
+      examStatus?.has_questions && 'exam',
+    ].filter(Boolean) as string[]
+    const currentValid = validTabs.includes(activeTab)
+    if (!currentValid && validTabs.length > 0) {
+      setActiveTab(validTabs[0])
+    }
+  }, [chapter?.id, hasNotebook, hasReadme, hasDocument, examStatus?.has_questions, activeTab])
+
+  const docMimeType = isDocx
+    ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    : 'application/pdf'
+  const docExt = isDocx ? '.docx' : '.pdf'
 
   const handlePdfDownload = async () => {
     try {
       const { data } = await notebookApi.getPdf(chapter.id)
-      const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+      const url = URL.createObjectURL(new Blob([data], { type: docMimeType }))
       const a = document.createElement('a')
       a.href = url
-      a.download = chapter.pdf_path?.split('/').pop() || `chapter-${chapter.chapter_number}.pdf`
+      a.download = chapter.pdf_path?.split('/').pop() || `chapter-${chapter.chapter_number}${docExt}`
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      console.error('下载 PDF 失败:', e)
+      console.error('下载文档失败:', e)
     }
   }
 
   const handlePdfOpen = async () => {
     try {
       const { data } = await notebookApi.getPdf(chapter.id)
-      const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+      const url = URL.createObjectURL(new Blob([data], { type: docMimeType }))
       window.open(url, '_blank', 'noopener,noreferrer')
       setTimeout(() => URL.revokeObjectURL(url), 60000)
     } catch (e) {
-      console.error('打开 PDF 失败:', e)
+      console.error('打开文档失败:', e)
     }
   }
 
@@ -244,12 +267,16 @@ export default function ChapterDetail() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full sm:w-auto flex-wrap sm:flex-nowrap">
-          <TabsTrigger value="notebook" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">Notebook</TabsTrigger>
-          <TabsTrigger value="readme" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">README</TabsTrigger>
-          {hasPdf && (
+          {hasNotebook && (
+            <TabsTrigger value="notebook" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">Notebook</TabsTrigger>
+          )}
+          {hasReadme && (
+            <TabsTrigger value="readme" className="flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">README</TabsTrigger>
+          )}
+          {hasDocument && (
             <TabsTrigger value="pdf" className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">PDF</span>
+              <span className="hidden sm:inline">{isDocx ? '文档' : 'PDF'}</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="exam" className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px] text-sm sm:text-base touch-manipulation">
@@ -264,6 +291,7 @@ export default function ChapterDetail() {
           </TabsTrigger>
         </TabsList>
 
+        {hasNotebook && (
         <TabsContent value="notebook" className="mt-6">
           <Card>
             <CardHeader>
@@ -285,7 +313,9 @@ export default function ChapterDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
+        {hasReadme && (
         <TabsContent value="readme" className="mt-6">
           <Card>
             <CardHeader>
@@ -312,21 +342,24 @@ export default function ChapterDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
-        {hasPdf && (
+        {hasDocument && (
           <TabsContent value="pdf" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  本章 PDF
+                  {isDocx ? '本章文档' : '本章 PDF'}
                 </CardTitle>
-                <CardDescription>下载或在新窗口中打开本章讲义 PDF</CardDescription>
+                <CardDescription>
+                  {isDocx ? '下载或在新窗口中打开本章 DOCX 文档' : '下载或在新窗口中打开本章讲义 PDF'}
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button onClick={handlePdfDownload} className="gap-2">
                   <Download className="h-4 w-4" />
-                  下载 PDF
+                  {isDocx ? '下载文档' : '下载 PDF'}
                 </Button>
                 <Button variant="outline" onClick={handlePdfOpen} className="gap-2">
                   <ExternalLink className="h-4 w-4" />

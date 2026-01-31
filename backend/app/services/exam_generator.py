@@ -1,0 +1,158 @@
+"""
+从文档（PDF/DOCX）提取文本并调用 LLM 生成考核题
+"""
+import json
+import logging
+import os
+import re
+from pathlib import Path
+from typing import List
+
+logger = logging.getLogger(__name__)
+MAX_MATERIAL_CHARS = 14000
+
+
+def extract_pdf_text(pdf_path: Path) -> str:
+    """从 PDF 提取文本"""
+    if not pdf_path.exists():
+        return ""
+    try:
+        import pdfplumber
+        text_parts = []
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                t = page.extract_text()
+                if t:
+                    text_parts.append(t)
+        return "\n\n".join(text_parts)
+    except ImportError:
+        logger.warning("pdfplumber 未安装，无法提取 PDF 文本")
+        return ""
+    except Exception as e:
+        logger.warning("提取 PDF 文本失败: %s", e)
+        return ""
+
+
+def extract_docx_text(docx_path: Path) -> str:
+    """从 DOCX 提取文本"""
+    if not docx_path.exists():
+        return ""
+    try:
+        from docx import Document
+        doc = Document(docx_path)
+        parts = [p.text for p in doc.paragraphs if p.text.strip()]
+        return "\n\n".join(parts)
+    except ImportError:
+        logger.warning("python-docx 未安装，无法提取 DOCX 文本")
+        return ""
+    except Exception as e:
+        logger.warning("提取 DOCX 文本失败: %s", e)
+        return ""
+
+
+def extract_document_text(doc_path: Path) -> str:
+    """根据扩展名从 PDF 或 DOCX 提取文本"""
+    ext = doc_path.suffix.lower()
+    if ext == ".pdf":
+        return extract_pdf_text(doc_path)
+    if ext in (".docx", ".doc"):
+        return extract_docx_text(doc_path)
+    return ""
+
+
+def _call_llm(material: str, chapter_number: int, title: str) -> List[dict]:
+    """调用 LLM 生成题目"""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("openai 未安装")
+        return []
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        logger.warning("未设置 OPENAI_API_KEY，跳过考核题生成")
+        return []
+
+    client = OpenAI(api_key=api_key)
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    if base_url:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+
+    system = """你是一个出题助手。根据用户提供的「章节材料」文本，生成章节考核题。
+要求：
+1. 只输出一个 JSON 数组，不要其他说明。
+2. 每题格式：
+   - type: "single_choice" 或 "true_false"
+   - content: 题干（字符串）
+   - options: 选项列表。单选题为 [{"key":"A","value":"选项A"}, ...] 至少4项；判断题为 [{"key":"true","value":"正确"},{"key":"false","value":"错误"}]
+   - answer: 正确答案的 key，如 "B" 或 "true"
+   - explanation: 简短解析（字符串）
+3. 至少生成 4 道单选题、2 道判断题；题目需基于材料内容，不要编造。
+4. 输出必须是合法 JSON，且仅为数组。"""
+
+    user = f"章节 {chapter_number}：{title}\n\n材料：\n{material}"
+
+    try:
+        resp = client.chat.completions.create(
+            model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=0.3,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        logger.warning("LLM 调用失败: %s", e)
+        return []
+
+    raw = raw.replace("```json", "").replace("```", "").strip()
+    m = re.search(r"\[[\s\S]*\]", raw)
+    if not m:
+        return []
+    try:
+        questions = json.loads(m.group(0))
+    except json.JSONDecodeError:
+        return []
+
+    result = []
+    for q in questions:
+        if not isinstance(q, dict):
+            continue
+        t = (q.get("type") or "single_choice").strip().lower()
+        if t not in ("single_choice", "true_false"):
+            t = "single_choice"
+        content = (q.get("content") or "").strip()
+        if not content:
+            continue
+        options = q.get("options")
+        if not options or not isinstance(options, list):
+            if t == "true_false":
+                options = [{"key": "true", "value": "正确"}, {"key": "false", "value": "错误"}]
+            else:
+                continue
+        answer = (q.get("answer") or "").strip()
+        explanation = (q.get("explanation") or "").strip()
+        result.append({
+            "type": t,
+            "content": content,
+            "options": options,
+            "answer": answer,
+            "explanation": explanation,
+        })
+    return result
+
+
+def generate_questions_from_document(
+    doc_path: Path,
+    chapter_number: int,
+    title: str,
+) -> List[dict]:
+    """从文档生成考核题"""
+    material = extract_document_text(doc_path)
+    if not material.strip():
+        logger.warning("文档无有效文本内容")
+        return []
+    if len(material) > MAX_MATERIAL_CHARS:
+        material = material[:MAX_MATERIAL_CHARS] + "\n\n[内容已截断]"
+    return _call_llm(material, chapter_number, title)

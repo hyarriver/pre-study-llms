@@ -70,4 +70,5 @@ async def get_me(current_user: User = Depends(get_current_user)):
         email=current_user.email,
         nickname=getattr(current_user, "nickname", None) or current_user.username,
         avatar_url=getattr(current_user, "avatar_url", None),
+        role=getattr(current_user, "role", None) or "user",
     )

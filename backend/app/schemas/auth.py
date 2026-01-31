@@ -43,6 +43,7 @@ class UserResponse(BaseModel):
     email: str
     nickname: str | None = None
     avatar_url: str | None = None
+    role: str = "user"
 
     class Config:
         from_attributes = True

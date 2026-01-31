@@ -6,16 +6,16 @@ from pathlib import Path
 from sqlalchemy import text
 from app.database.base import Base
 from app.database.session import engine
-from app.models import Chapter, Progress, Note, User, Question, ExamRecord
+from app.models import Chapter, Progress, Note, User, Question, ExamRecord, MaterialSubmission
 from app.database.session import SessionLocal
 from datetime import datetime
 
 
-def _add_column_if_not_exists(column_name: str, type_: str):
+def _add_column_if_not_exists(table: str, column_name: str, type_def: str):
     """对已有 SQLite 表安全添加列（列已存在则忽略）"""
     try:
         with engine.connect() as conn:
-            conn.execute(text(f"ALTER TABLE users ADD COLUMN {column_name} {type_}"))
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column_name} {type_def}"))
             conn.commit()
     except Exception:
         pass  # 如 duplicate column name 等，忽略
@@ -25,9 +25,13 @@ def init_db():
     """初始化数据库，创建所有表"""
     Base.metadata.create_all(bind=engine)
 
-    # 兼容已有库：为 users 表添加 nickname、avatar_url（若不存在）
-    _add_column_if_not_exists("nickname", "VARCHAR(100)")
-    _add_column_if_not_exists("avatar_url", "VARCHAR(500)")
+    # 兼容已有库：为 users 表添加 nickname、avatar_url、role（若不存在）
+    _add_column_if_not_exists("users", "nickname", "VARCHAR(100)")
+    _add_column_if_not_exists("users", "avatar_url", "VARCHAR(500)")
+    _add_column_if_not_exists("users", "role", "VARCHAR(20) DEFAULT 'user'")
+    # 为 chapters 表添加 source_type、submission_id（若不存在）
+    _add_column_if_not_exists("chapters", "source_type", "VARCHAR(20) DEFAULT 'official'")
+    _add_column_if_not_exists("chapters", "submission_id", "INTEGER")
 
     # 初始化章节数据：优先从 documents/chapters_config.json 同步
     db = SessionLocal()

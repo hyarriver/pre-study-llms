@@ -33,6 +33,7 @@ class ChapterUpdate(BaseModel):
 class ChapterResponse(ChapterBase):
     """章节响应模型"""
     id: int
+    source_type: Optional[str] = "official"
     created_at: datetime
     updated_at: datetime
     completion_percentage: float = 0.0

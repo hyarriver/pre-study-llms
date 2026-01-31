@@ -9,6 +9,7 @@ export interface User {
   email: string
   nickname?: string | null
   avatar_url?: string | null
+  role?: string  // user | admin
 }
 
 export interface Token {
@@ -22,13 +23,36 @@ export interface Chapter {
   chapter_number: number
   title: string
   description: string
-  notebook_path: string
-  readme_path: string
-  pdf_path: string
+  notebook_path: string | null
+  readme_path: string | null
+  pdf_path: string | null
+  source_type?: string  // official | user_submitted
   completion_percentage: number
   completed: boolean
   created_at: string
   updated_at: string
+}
+
+// 材料提交
+export interface MaterialSubmission {
+  id: number
+  user_id: number
+  title: string
+  description: string | null
+  file_path: string
+  file_type: string
+  status: 'pending' | 'approved' | 'rejected'
+  reject_reason: string | null
+  reviewed_by: number | null
+  reviewed_at: string | null
+  chapter_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface MaterialSubmissionWithUser extends MaterialSubmission {
+  user_nickname?: string | null
+  user_username?: string | null
 }
 
 // 学习进度类型

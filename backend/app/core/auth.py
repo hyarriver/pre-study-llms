@@ -58,6 +58,19 @@ def get_current_user(
         raise HTTPException(status_code=500, detail="服务器内部错误，请稍后重试")
 
 
+def get_current_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """获取当前管理员（必须已登录且角色为 admin）"""
+    role = getattr(current_user, "role", "user")
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="需要管理员权限",
+        )
+    return current_user
+
+
 def get_current_user_optional(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),

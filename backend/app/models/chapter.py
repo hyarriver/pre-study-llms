@@ -18,6 +18,8 @@ class Chapter(Base):
     notebook_path = Column(String(500))
     readme_path = Column(String(500))
     pdf_path = Column(String(500))
+    source_type = Column(String(20), default="official", nullable=False)  # official | user_submitted
+    submission_id = Column(Integer, nullable=True)  # 关联 MaterialSubmission.id，便于追溯
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -26,3 +28,5 @@ class Chapter(Base):
     notes = relationship("Note", back_populates="chapter", cascade="all, delete-orphan")
     questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")
     exam_records = relationship("ExamRecord", back_populates="chapter", cascade="all, delete-orphan")
+    # 用户提交审核通过的章节：通过 submission_id 追溯到 MaterialSubmission
+    submission = relationship("MaterialSubmission", back_populates="chapter_rel", foreign_keys="MaterialSubmission.chapter_id", uselist=False)

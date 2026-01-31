@@ -16,4 +16,5 @@ class User(Base):
     hashed_password = Column(String(128), nullable=False)
     nickname = Column(String(100), nullable=True)
     avatar_url = Column(String(500), nullable=True)
+    role = Column(String(20), default="user", nullable=False)  # user | admin
     created_at = Column(DateTime, default=datetime.utcnow)
