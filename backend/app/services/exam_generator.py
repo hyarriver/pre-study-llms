@@ -224,14 +224,51 @@ def generate_readme_from_document(
 MAX_NOTEBOOK_MATERIAL_CHARS = 14000
 
 
+def _material_to_cells_fallback(material: str, title: str, description: str) -> List[str]:
+    """
+    当 LLM 不可用时，从文档正文按段落切分生成 markdown cells。
+    确保 notebook 包含完整文档内容，而非仅标题和简介。
+    """
+    cells = []
+    # 第一个 cell：标题 + 简介
+    header = f"# {title}\n\n"
+    if description.strip():
+        header += f"{description.strip()}\n\n---\n\n"
+    cells.append(header.strip())
+
+    # 按段落切分正文（双换行或单换行+空行）
+    blocks = re.split(r"\n\s*\n", material.strip())
+    blocks = [b.strip() for b in blocks if b.strip()]
+
+    # 合并过短段落，控制每个 cell 约 800–1500 字
+    CHUNK_SIZE = 1200
+    current_chunk = []
+    current_len = 0
+
+    for block in blocks:
+        block_len = len(block) + 2  # +2 for \n\n
+        if current_len + block_len > CHUNK_SIZE and current_chunk:
+            cells.append("\n\n".join(current_chunk))
+            current_chunk = [block]
+            current_len = block_len
+        else:
+            current_chunk.append(block)
+            current_len += block_len
+
+    if current_chunk:
+        cells.append("\n\n".join(current_chunk))
+
+    return cells
+
+
 def generate_notebook_from_document(
     doc_path: Path,
     title: str,
     description: str = "",
 ) -> Optional[List[str]]:
     """
-    从文档提取文本并调用 LLM 生成 Jupyter Notebook 的 markdown cells。
-    返回 markdown 单元格内容列表，失败返回 None。
+    从文档提取文本并生成 Jupyter Notebook 的 markdown cells。
+    优先调用 LLM 结构化生成；若 LLM 不可用或失败，则按文档正文切分生成，确保包含完整内容。
     """
     material = extract_document_text(doc_path)
     if not material.strip():
@@ -240,16 +277,17 @@ def generate_notebook_from_document(
     if len(material) > MAX_NOTEBOOK_MATERIAL_CHARS:
         material = material[:MAX_NOTEBOOK_MATERIAL_CHARS] + "\n\n[内容已截断]"
 
+    # 尝试 LLM 生成
     try:
         from openai import OpenAI
     except ImportError:
-        logger.warning("openai 未安装，跳过 Notebook 生成")
-        return None
+        logger.warning("openai 未安装，使用文档正文切分生成 Notebook")
+        return _material_to_cells_fallback(material, title, description)
 
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        logger.warning("未设置 OPENAI_API_KEY，跳过 Notebook 生成")
-        return None
+        logger.warning("未设置 OPENAI_API_KEY，使用文档正文切分生成 Notebook")
+        return _material_to_cells_fallback(material, title, description)
 
     client = OpenAI(api_key=api_key)
     base_url = os.environ.get("OPENAI_BASE_URL")
@@ -263,7 +301,8 @@ def generate_notebook_from_document(
 3. 后续单元格按文档逻辑分段，使用合适的 markdown 格式（标题、列表、代码块等）。
 4. 输出纯 JSON 数组，每个元素为单个 markdown 单元格的字符串内容，如：["# 标题\\n\\n导读...", "## 第一节\\n\\n内容...", ...]
 5. 不要输出代码块包裹，直接输出 JSON 数组。
-6. 语言与文档一致（中文文档用中文，英文用英文）。"""
+6. 语言与文档一致（中文文档用中文，英文用英文）。
+7. 必须完整保留文档核心内容，不要缩写或省略。"""
 
     user = f"章节标题：{title}\n"
     if description:
@@ -281,24 +320,26 @@ def generate_notebook_from_document(
         )
         raw = (resp.choices[0].message.content or "").strip()
         if not raw:
-            return None
+            return _material_to_cells_fallback(material, title, description)
         raw = raw.replace("```json", "").replace("```", "").strip()
         m = re.search(r"\[[\s\S]*\]", raw)
         if not m:
-            return None
+            return _material_to_cells_fallback(material, title, description)
         cells_data = json.loads(m.group(0))
         if not isinstance(cells_data, list):
-            return None
+            return _material_to_cells_fallback(material, title, description)
         result = []
         for item in cells_data:
             if isinstance(item, str) and item.strip():
                 result.append(item.strip())
             elif isinstance(item, (int, float)):
                 result.append(str(item))
-        return result if result else None
+        if not result:
+            return _material_to_cells_fallback(material, title, description)
+        return result
     except Exception as e:
-        logger.warning("LLM 生成 Notebook 失败: %s", e)
-        return None
+        logger.warning("LLM 生成 Notebook 失败，使用文档正文切分: %s", e)
+        return _material_to_cells_fallback(material, title, description)
 
 
 def write_notebook_to_file(cells_content: List[str], output_path: Path) -> bool:
