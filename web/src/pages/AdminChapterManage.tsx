@@ -16,6 +16,7 @@ import {
   ListOrdered,
   X,
   Save,
+  RefreshCw,
 } from 'lucide-react'
 
 export default function AdminChapterManage() {
@@ -25,6 +26,7 @@ export default function AdminChapterManage() {
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null)
   const [editForm, setEditForm] = useState<ChapterUpdateBody>({})
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [regeneratingId, setRegeneratingId] = useState<number | null>(null)
 
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: number; body: ChapterUpdateBody }) =>
@@ -48,6 +50,16 @@ export default function AdminChapterManage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters'] })
       setDeletingId(null)
+    },
+  })
+
+  const regenerateMutation = useMutation({
+    mutationFn: (chapterId: number) => chaptersApi.regenerateContent(chapterId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapters'] })
+    },
+    onSettled: () => {
+      setRegeneratingId(null)
     },
   })
 
@@ -264,6 +276,26 @@ export default function AdminChapterManage() {
                       >
                         <Pencil className="h-4 w-4" /> 编辑
                       </Button>
+                      {chapter.source_type === 'user_submitted' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setRegeneratingId(chapter.id)
+                            regenerateMutation.mutate(chapter.id)
+                          }}
+                          disabled={regenerateMutation.isPending}
+                          className="gap-1"
+                          title="补生成 README、Notebook、考核题"
+                        >
+                          {regeneratingId === chapter.id ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                          补生成
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         size="sm"

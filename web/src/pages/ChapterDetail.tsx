@@ -112,12 +112,11 @@ export default function ChapterDetail() {
   }, [readProgress, chapter?.completion_percentage, chapter?.id, isAuth])
 
   const hasDocument = !!chapter?.pdf_path
-  const hasExamQuestions = (examStatus?.has_questions ?? examInfo?.has_questions) ?? false
   const validTabs = [
     hasNotebook && 'notebook',
     hasReadme && 'readme',
     hasDocument && 'pdf',
-    hasExamQuestions && 'exam',
+    'exam',  // 始终包含，无题时由 ExamPanel 显示空状态
   ].filter(Boolean) as string[]
 
   // 文档学习型章节默认显示文档标签；确保 activeTab 对应存在的标签（须在 return 前，保持 hooks 顺序）

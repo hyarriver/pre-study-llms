@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import re
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import List, Optional
 
@@ -60,29 +62,102 @@ def extract_docx_text(docx_path: Path) -> str:
 ENHANCED_EXTRACT_THRESHOLD = 200
 
 
+def _get_project_root() -> Path:
+    """推断项目根目录（backend 的父目录）"""
+    backend_dir = Path(__file__).resolve().parent.parent.parent
+    if (backend_dir / "documents").exists():
+        return backend_dir
+    if (backend_dir.parent / "documents").exists():
+        return backend_dir.parent
+    return backend_dir
+
+
+def extract_pdf_text_via_pipeline(pdf_path: Path) -> str:
+    """
+    通过 run_pdf_pipeline（Surya OCR）提取扫描版 PDF 文本。
+    子进程调用 scripts/run_pdf_pipeline.py 生成 Markdown，返回内容。
+    失败时返回空字符串。
+    """
+    pdf_path = Path(pdf_path).resolve()
+    if not pdf_path.exists():
+        return ""
+    root = _get_project_root()
+    script = root / "scripts" / "run_pdf_pipeline.py"
+    if not script.exists():
+        logger.warning("run_pdf_pipeline.py 不存在，跳过 Pipeline OCR: %s", script)
+        return ""
+    with tempfile.TemporaryDirectory(prefix="pdf_pipeline_") as tmpdir:
+        out_dir = Path(tmpdir) / "out"
+        out_dir.mkdir(exist_ok=True)
+        cmd = [
+            "python",
+            str(script),
+            str(pdf_path),
+            "-o", str(out_dir),
+            "--no-docx",
+            "--no-notebook",
+        ]
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(root),
+                capture_output=True,
+                text=True,
+                timeout=300,  # 5 分钟超时
+                env={**os.environ},
+            )
+            if result.returncode != 0:
+                logger.warning(
+                    "run_pdf_pipeline 执行失败: %s, stderr: %s",
+                    result.returncode,
+                    (result.stderr or "")[:500],
+                )
+                return ""
+            md_path = out_dir / f"{pdf_path.stem}.md"
+            if md_path.exists():
+                content = md_path.read_text(encoding="utf-8")
+                if content.strip():
+                    logger.info(
+                        "PDF 经 Pipeline OCR 提取，字符数: %s",
+                        len(content),
+                    )
+                    return content
+        except subprocess.TimeoutExpired:
+            logger.warning("run_pdf_pipeline 超时（300s），跳过")
+        except Exception as e:
+            logger.warning("run_pdf_pipeline 调用失败: %s", e)
+    return ""
+
+
 def extract_pdf_text_enhanced(pdf_path: Path) -> str:
-    """从 PDF 提取文本；若 pdfplumber 提取过少则用 Tesseract OCR 增强（扫描件）。"""
+    """从 PDF 提取文本；若 pdfplumber 提取过少则依次尝试 Tesseract OCR、run_pdf_pipeline（Surya OCR）。"""
     text = extract_pdf_text(pdf_path)
     if len(text.strip()) >= ENHANCED_EXTRACT_THRESHOLD:
         return text
+    # 1. 尝试 Tesseract OCR
     try:
         from pdf2image import convert_from_path
         import pytesseract
     except ImportError:
-        return text
-    try:
-        pages = convert_from_path(str(pdf_path), dpi=150)
-        parts = []
-        for img in pages:
-            t = pytesseract.image_to_string(img, lang="chi_sim+eng")
-            if (t or "").strip():
-                parts.append(t.strip())
-        if parts:
-            enhanced = "\n\n".join(parts)
-            logger.info("PDF 经 OCR 增强提取，字符数 %s -> %s", len(text), len(enhanced))
-            return enhanced
-    except Exception as e:
-        logger.warning("OCR 增强提取失败: %s", e)
+        pass
+    else:
+        try:
+            pages = convert_from_path(str(pdf_path), dpi=150)
+            parts = []
+            for img in pages:
+                t = pytesseract.image_to_string(img, lang="chi_sim+eng")
+                if (t or "").strip():
+                    parts.append(t.strip())
+            if parts:
+                enhanced = "\n\n".join(parts)
+                logger.info("PDF 经 Tesseract OCR 增强提取，字符数 %s -> %s", len(text), len(enhanced))
+                return enhanced
+        except Exception as e:
+            logger.info("Tesseract OCR 失败，尝试 Pipeline: %s", e)
+    # 2. 回退到 run_pdf_pipeline（Surya OCR）
+    pipeline_text = extract_pdf_text_via_pipeline(pdf_path)
+    if pipeline_text.strip():
+        return pipeline_text
     return text
 
 
