@@ -46,6 +46,7 @@ export interface MaterialSubmission {
   reviewed_by: number | null
   reviewed_at: string | null
   chapter_id: number | null
+  deleted_by_user_at?: string | null
   created_at: string
   updated_at: string
 }

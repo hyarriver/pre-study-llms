@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Menu, X, Home, BookOpen, LogIn, LogOut, User, Upload, ShieldCheck, ListOrdered } from 'lucide-react'
+import { Menu, X, Home, BookOpen, LogIn, LogOut, User, Upload, ShieldCheck } from 'lucide-react'
 import { Button } from './ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -35,12 +35,7 @@ export default function MobileMenu() {
     { to: '/', label: '首页', icon: Home },
     { to: '/chapters', label: '教程列表', icon: BookOpen },
     ...(isAuth ? [{ to: '/materials/upload', label: '上传资料', icon: Upload }] : []),
-    ...(isAuth && user?.role === 'admin'
-      ? [
-          { to: '/admin/chapters', label: '学习目录', icon: ListOrdered },
-          { to: '/admin/materials', label: '管理审核', icon: ShieldCheck },
-        ]
-      : []),
+    ...(isAuth && user?.role === 'admin' ? [{ to: '/admin', label: '管理', icon: ShieldCheck }] : []),
   ]
 
   // 菜单内容组件

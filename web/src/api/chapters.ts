@@ -29,4 +29,7 @@ export const chaptersApi = {
   /** 管理员：删除章节 */
   delete: (id: number) =>
     api.delete<{ message: string }>(`/chapters/${id}`),
+  /** 管理员：补生成 README、Notebook、考核题（仅用户提交章节） */
+  regenerateContent: (chapterId: number) =>
+    api.post<{ message: string }>(`/chapters/${chapterId}/regenerate-content`),
 }

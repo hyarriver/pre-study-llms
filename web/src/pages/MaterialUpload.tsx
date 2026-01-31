@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { useAuthStore } from '@/store/authStore'
 import { getApiErrorMessage } from '@/lib/utils'
-import { Upload, FileText, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { Upload, FileText, Clock, CheckCircle2, XCircle, Trash2 } from 'lucide-react'
 
 export default function MaterialUpload() {
   const queryClient = useQueryClient()
@@ -22,6 +22,13 @@ export default function MaterialUpload() {
     queryKey: ['my-submissions'],
     queryFn: () => materialsApi.getMySubmissions().then((r) => r.data),
     enabled: !!user,
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => materialsApi.deleteMySubmission(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-submissions'] })
+    },
   })
 
   const submitMutation = useMutation({
@@ -188,6 +195,16 @@ export default function MaterialUpload() {
                         <XCircle className="h-4 w-4" /> 已驳回
                       </span>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteMutation.mutate(s.id)}
+                      disabled={deleteMutation.isPending}
+                      title="删除"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </li>
               ))}

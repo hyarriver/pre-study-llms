@@ -10,6 +10,7 @@ from app.core.dependencies import get_chapter_service
 from app.database import get_db
 from app.core.auth import get_current_user_optional, get_current_admin
 from app.services.chapter_service import ChapterService
+from app.services.material_service import MaterialService
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -37,6 +38,10 @@ async def get_chapters(
 ):
     """获取所有章节列表；已登录则返回该用户学习进度"""
     return service.get_all(user_id=_user_id(current_user))
+
+
+def get_material_service(db: Session = Depends(get_db)) -> MaterialService:
+    return MaterialService(db)
 
 
 @router.get("/{chapter_id}/exam-info", response_model=ChapterExamInfo)
@@ -83,3 +88,17 @@ async def admin_delete_chapter(
     """管理员：删除章节"""
     service.delete(chapter_id)
     return {"message": "章节已删除"}
+
+
+@router.post("/{chapter_id}/regenerate-content")
+async def regenerate_chapter_content(
+    chapter_id: int,
+    material_service: MaterialService = Depends(get_material_service),
+    current_user: User = Depends(get_current_admin),
+):
+    """管理员：为已有用户提交章节补生成 README、Notebook、考核题"""
+    try:
+        material_service.regenerate_chapter_content(chapter_id)
+        return {"message": "补生成完成"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -94,13 +94,24 @@ class MaterialService:
         return submission
 
     def get_my_submissions(self, user_id: int) -> List[MaterialSubmission]:
-        """获取当前用户的提交列表"""
+        """获取当前用户的提交列表（不含用户已软删除的）"""
         return (
             self.db.query(MaterialSubmission)
             .filter(MaterialSubmission.user_id == user_id)
+            .filter(MaterialSubmission.deleted_by_user_at.is_(None))
             .order_by(MaterialSubmission.created_at.desc())
             .all()
         )
+
+    def delete_my_submission(self, submission_id: int, user_id: int) -> None:
+        """用户软删除自己的提交记录"""
+        submission = self.get_by_id(submission_id)
+        if not submission:
+            raise ValueError("提交不存在")
+        if submission.user_id != user_id:
+            raise ValueError("无权操作")
+        submission.deleted_by_user_at = datetime.utcnow()
+        self.db.commit()
 
     def get_pending_submissions(self) -> List[MaterialSubmission]:
         """获取待审核列表"""
@@ -111,6 +122,30 @@ class MaterialService:
             .order_by(MaterialSubmission.created_at.asc())
             .all()
         )
+
+    def get_all_submissions(self) -> List[MaterialSubmission]:
+        """管理员：获取全部提交记录（含用户已软删除的）"""
+        return (
+            self.db.query(MaterialSubmission)
+            .options(joinedload(MaterialSubmission.user))
+            .order_by(MaterialSubmission.created_at.desc())
+            .all()
+        )
+
+    def admin_delete_submission(self, submission_id: int) -> None:
+        """管理员：彻底删除提交记录。pending 时删除文件；approved 时仅删记录，章节保留。"""
+        submission = self.get_by_id(submission_id)
+        if not submission:
+            raise ValueError("提交不存在")
+        if submission.status == "pending":
+            src_path = self.get_file_path(submission)
+            if src_path.exists():
+                try:
+                    shutil.rmtree(src_path.parent)
+                except OSError as e:
+                    logger.warning("删除上传文件失败: %s", e)
+        self.db.delete(submission)
+        self.db.commit()
 
     def get_by_id(self, submission_id: int) -> Optional[MaterialSubmission]:
         """根据 ID 获取提交"""
@@ -247,25 +282,66 @@ class MaterialService:
         description: str,
         next_num: int,
     ) -> Optional[str]:
-        """从文档生成 Notebook 并写入章节目录，返回相对路径或 None。"""
+        """从文档生成 Notebook 并写入章节目录，返回相对路径或 None。失败时写入占位 notebook（仅标题）。"""
+        from app.services.exam_generator import (
+            generate_notebook_from_document,
+            write_notebook_to_file,
+        )
+        output_path = chapter_dir / "content.ipynb"
+        cells_content = None
         try:
-            from app.services.exam_generator import (
-                generate_notebook_from_document,
-                write_notebook_to_file,
-            )
             cells_content = generate_notebook_from_document(doc_path, title, description)
-            if not cells_content:
-                return None
-            output_path = chapter_dir / "content.ipynb"
-            if not write_notebook_to_file(cells_content, output_path):
-                return None
-            return f"documents/chapter_user_{next_num}/content.ipynb"
         except Exception as e:
-            logger.warning("生成或写入 Notebook 失败: %s", e)
-            return None
+            logger.warning("生成 Notebook 内容失败: %s", e)
+        if cells_content and write_notebook_to_file(cells_content, output_path):
+            return f"documents/chapter_user_{next_num}/content.ipynb"
+        # 兜底：写入仅含标题的占位 notebook
+        placeholder_cells = [f"# {title}\n\n{description or '本章节为上传文档，可于 PDF/文档 标签查看原文。'}"]
+        if write_notebook_to_file(placeholder_cells, output_path):
+            return f"documents/chapter_user_{next_num}/content.ipynb"
+        return None
 
-    def _generate_exam_questions(self, chapter: Chapter, submission: MaterialSubmission):
-        """从文档提取文本并生成考核题"""
+    def regenerate_chapter_content(self, chapter_id: int) -> None:
+        """管理员：为已有用户提交章节补生成 README、Notebook、考核题。仅对 source_type=user_submitted 且 pdf_path 存在的章节有效。"""
+        chapter = self.db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        if not chapter:
+            raise ValueError("章节不存在")
+        if getattr(chapter, "source_type", None) != "user_submitted":
+            raise ValueError("仅支持用户提交的章节")
+        if not chapter.pdf_path:
+            raise ValueError("章节无文档路径")
+        doc_path = self.base_dir / chapter.pdf_path
+        if not doc_path.exists():
+            raise ValueError("文档文件不存在")
+        chapter_dir = doc_path.parent
+        next_num = chapter.chapter_number
+
+        readme_rel = self._generate_readme(
+            chapter_dir=chapter_dir,
+            doc_path=doc_path,
+            title=chapter.title,
+            description=chapter.description or "",
+            next_num=next_num,
+        )
+        if readme_rel:
+            chapter.readme_path = readme_rel
+
+        notebook_rel = self._generate_notebook(
+            chapter_dir=chapter_dir,
+            doc_path=doc_path,
+            title=chapter.title,
+            description=chapter.description or "",
+            next_num=next_num,
+        )
+        if notebook_rel:
+            chapter.notebook_path = notebook_rel
+
+        self.db.query(Question).filter(Question.chapter_id == chapter_id).delete()
+        self._generate_exam_questions(chapter, None)
+        self.db.commit()
+
+    def _generate_exam_questions(self, chapter: Chapter, submission: Optional[MaterialSubmission]):
+        """从文档提取文本并生成考核题。submission 可为 None（补生成时）。"""
         try:
             from app.services.exam_generator import generate_questions_from_document
             doc_path = self.base_dir / chapter.pdf_path

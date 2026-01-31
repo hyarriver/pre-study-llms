@@ -35,8 +35,8 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   const [examResult, setExamResult] = useState<ExamResultType | null>(null)
   const [showHistory, setShowHistory] = useState(false)
 
-  const { data: questions, isLoading: questionsLoading } = useQuestions(chapterId)
-  const { data: examStatus, isLoading: statusLoading } = useExamStatus(chapterId)
+  const { data: questions, isLoading: questionsLoading, isError: questionsError, refetch: refetchQuestions } = useQuestions(chapterId)
+  const { data: examStatus, isLoading: statusLoading, isError: statusError, refetch: refetchStatus } = useExamStatus(chapterId)
   const { data: examRecords } = useExamRecords(chapterId)
   const submitExam = useSubmitExam(chapterId)
 
@@ -93,6 +93,42 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
               <Link to={`/login?redirect=${encodeURIComponent(`/chapters/${chapterId}`)}`}>
                 去登录
               </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // 加载失败
+  if (questionsError || statusError) {
+    const message = questionsError && statusError
+      ? '加载试题与考试状态失败，请检查网络或重新登录后重试'
+      : questionsError
+        ? '加载试题失败，请重试'
+        : '加载考试状态失败，请重试'
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5 text-primary" />
+            章节考核
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 space-y-4">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+            <p className="text-muted-foreground">{message}</p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                refetchQuestions()
+                refetchStatus()
+              }}
+              className="gap-2"
+            >
+              <PlayCircle className="h-4 w-4" />
+              重试
             </Button>
           </div>
         </CardContent>

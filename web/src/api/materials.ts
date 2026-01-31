@@ -10,7 +10,12 @@ export const materialsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   getMySubmissions: () => api.get<MaterialSubmission[]>('/materials/my-submissions'),
+  deleteMySubmission: (submissionId: number) =>
+    api.delete<{ message: string }>(`/materials/my-submissions/${submissionId}`),
   getPendingSubmissions: () => api.get<MaterialSubmissionWithUser[]>('/materials/admin/pending'),
+  getAllSubmissions: () => api.get<MaterialSubmissionWithUser[]>('/materials/admin/all'),
+  adminDelete: (submissionId: number) =>
+    api.delete<{ message: string }>(`/materials/admin/${submissionId}`),
   approve: (submissionId: number) =>
     api.post<{ message: string; chapter_id: number }>(`/materials/admin/${submissionId}/approve`),
   reject: (submissionId: number, reason?: string) =>

@@ -17,8 +17,11 @@ services:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      # CORS 配置：已设置为允许所有来源（在代码中硬编码）
       - WEBHOOK_SECRET=${WEBHOOK_SECRET:-}
+      - BASE_DIR=/app
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
     volumes:
       # 挂载数据库文件目录
       - ./backend/data:/app/data

@@ -22,6 +22,7 @@ class MaterialSubmission(Base):
     reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
     chapter_id = Column(Integer, ForeignKey("chapters.id"), nullable=True)
+    deleted_by_user_at = Column(DateTime, nullable=True)  # 用户软删除时间
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

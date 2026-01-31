@@ -25,6 +25,7 @@ class MaterialSubmissionResponse(BaseModel):
     reviewed_by: Optional[int] = None
     reviewed_at: Optional[datetime] = None
     chapter_id: Optional[int] = None
+    deleted_by_user_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

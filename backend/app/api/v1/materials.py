@@ -81,8 +81,22 @@ def get_my_submissions(
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
-    """获取当前用户的提交列表"""
+    """获取当前用户的提交列表（不含已删除的）"""
     return service.get_my_submissions(current_user.id)
+
+
+@router.delete("/my-submissions/{submission_id}")
+def delete_my_submission(
+    submission_id: int,
+    current_user: User = Depends(get_current_user),
+    service: MaterialService = Depends(get_material_service),
+):
+    """用户软删除自己的提交记录"""
+    try:
+        service.delete_my_submission(submission_id, current_user.id)
+        return {"message": "已删除"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/admin/pending", response_model=List[MaterialSubmissionWithUser])
@@ -101,6 +115,38 @@ def get_pending_submissions(
         )
         result.append(data)
     return result
+
+
+@router.get("/admin/all", response_model=List[MaterialSubmissionWithUser])
+def get_all_submissions(
+    current_user: User = Depends(get_current_admin),
+    service: MaterialService = Depends(get_material_service),
+):
+    """管理员：获取全部提交记录（含用户已删除的）"""
+    submissions = service.get_all_submissions()
+    result = []
+    for s in submissions:
+        data = MaterialSubmissionWithUser(
+            **MaterialSubmissionResponse.model_validate(s).model_dump(),
+            user_nickname=s.user.nickname if s.user else None,
+            user_username=s.user.username if s.user else None,
+        )
+        result.append(data)
+    return result
+
+
+@router.delete("/admin/{submission_id}")
+def admin_delete_submission(
+    submission_id: int,
+    current_user: User = Depends(get_current_admin),
+    service: MaterialService = Depends(get_material_service),
+):
+    """管理员：彻底删除提交记录"""
+    try:
+        service.admin_delete_submission(submission_id)
+        return {"message": "已删除"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/admin/{submission_id}/approve")

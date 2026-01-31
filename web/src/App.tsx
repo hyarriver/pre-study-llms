@@ -1,13 +1,12 @@
 import { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import ChapterList from './pages/ChapterList'
 import ChapterDetail from './pages/ChapterDetail'
 import Login from './pages/Login'
 import MaterialUpload from './pages/MaterialUpload'
-import AdminMaterialReview from './pages/AdminMaterialReview'
-import AdminChapterManage from './pages/AdminChapterManage'
+import AdminPage from './pages/AdminPage'
 import { useAuthStore } from './store/authStore'
 
 function App() {
@@ -26,8 +25,9 @@ function App() {
           <Route path="/chapters/:id" element={<ChapterDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/materials/upload" element={<MaterialUpload />} />
-          <Route path="/admin/materials" element={<AdminMaterialReview />} />
-          <Route path="/admin/chapters" element={<AdminChapterManage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/materials" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/chapters" element={<Navigate to="/admin" replace />} />
         </Routes>
       </Layout>
     </Router>
