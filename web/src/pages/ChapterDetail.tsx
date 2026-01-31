@@ -372,9 +372,11 @@ export default function ChapterDetail() {
         {hasNotebook && (
         <TabsContent value="notebook" className="mt-6" forceMount>
           <Card variant="glass">
-            <CardHeader className="space-y-3">
+            <CardHeader>
               <CardTitle>Jupyter Notebook 内容</CardTitle>
-              {/* 分页栏始终渲染，不依赖 loading，保证一定可见 */}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 分页栏放在 CardContent 第一项，与内容同容器，部署后 DOM 中一定存在 */}
               <nav
                 role="navigation"
                 aria-label="Notebook 分页"
@@ -405,8 +407,6 @@ export default function ChapterDetail() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </nav>
-            </CardHeader>
-            <CardContent>
               {notebookLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-8 w-full rounded" />
