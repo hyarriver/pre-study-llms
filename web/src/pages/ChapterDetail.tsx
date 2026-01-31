@@ -13,7 +13,8 @@ import { useStudyTimer } from '@/hooks/useStudyTimer'
 import { useAuthStore } from '@/store/authStore'
 import NotebookViewer from '@/components/NotebookViewer'
 import ReadmeViewer from '@/components/ReadmeViewer'
-import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink, FileDown } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink, FileDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { NOTEBOOK_PAGE_SIZE } from '@/components/NotebookViewer'
 import ExamPanel from '@/components/ExamPanel'
 import { useExamStatus, useChapterExamInfo } from '@/hooks/useExam'
 import { notebookApi } from '@/api/notebook'
@@ -23,6 +24,7 @@ export default function ChapterDetail() {
   const { id } = useParams<{ id: string }>()
   const chapterId = id ? parseInt(id) : 0
   const [activeTab, setActiveTab] = useState('notebook')
+  const [notebookPage, setNotebookPage] = useState(1)
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
   const isAuth = !!user
@@ -133,6 +135,15 @@ export default function ChapterDetail() {
     // 仅依赖章节 id，用户在同一章内切换 tab 不会触发此 effect
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 故意只依赖 chapter.id，避免 tab 被误重置
   }, [chapter?.id])
+
+  // 切换章节时重置 Notebook 分页
+  useEffect(() => {
+    setNotebookPage(1)
+  }, [chapterId])
+
+  const notebookCells = Array.isArray(notebookContent?.cells) ? notebookContent.cells : []
+  const notebookTotalCells = notebookCells.length
+  const notebookTotalPages = Math.max(1, Math.ceil(notebookTotalCells / NOTEBOOK_PAGE_SIZE))
 
   if (chapterLoading) {
     return (
@@ -361,8 +372,40 @@ export default function ChapterDetail() {
         {hasNotebook && (
         <TabsContent value="notebook" className="mt-6">
           <Card variant="glass">
-            <CardHeader>
+            <CardHeader className="space-y-3">
               <CardTitle>Jupyter Notebook 内容</CardTitle>
+              {/* 分页栏放在标题下方，与内容同卡内，保证打开 Notebook 即见 */}
+              {!notebookLoading && (
+                <nav
+                  role="navigation"
+                  aria-label="Notebook 分页"
+                  className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-primary/15 border-2 border-primary/30 shadow-md"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setNotebookPage((p) => Math.max(1, p - 1))}
+                    disabled={notebookPage <= 1}
+                    className="gap-1 shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    上一页
+                  </Button>
+                  <span className="text-sm font-semibold text-foreground min-w-[10rem] text-center tabular-nums">
+                    第 {notebookPage} / {notebookTotalPages} 页，共 {notebookTotalCells} 节
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setNotebookPage((p) => Math.min(notebookTotalPages, p + 1))}
+                    disabled={notebookPage >= notebookTotalPages}
+                    className="gap-1 shrink-0"
+                  >
+                    下一页
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </nav>
+              )}
             </CardHeader>
             <CardContent>
               {notebookLoading ? (
@@ -375,9 +418,11 @@ export default function ChapterDetail() {
                   <Skeleton className="h-24 w-full rounded" />
                 </div>
               ) : notebookContent ? (
-                <NotebookViewer 
-                  cells={Array.isArray(notebookContent.cells) ? notebookContent.cells : []} 
+                <NotebookViewer
+                  cells={notebookCells}
                   chapterNumber={chapter.chapter_number}
+                  currentPage={notebookPage}
+                  onPageChange={setNotebookPage}
                 />
               ) : (
                 <p className="text-muted-foreground">

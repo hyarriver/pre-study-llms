@@ -14,27 +14,35 @@ import ImageModal from '@/components/ImageModal'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-const PAGE_SIZE = 12
+/** 每页节数，与 ChapterDetail 分页栏一致 */
+export const NOTEBOOK_PAGE_SIZE = 12
 
 interface NotebookViewerProps {
   cells: NotebookCell[]
   chapterNumber: number
+  /** 受控：当前页码（由父组件 ChapterDetail 提供时，分页栏在标题区显示） */
+  currentPage?: number
+  /** 受控：页码变化回调 */
+  onPageChange?: (page: number) => void
 }
 
-export default function NotebookViewer({ cells: rawCells, chapterNumber }: NotebookViewerProps) {
+export default function NotebookViewer({ cells: rawCells, chapterNumber, currentPage: controlledPage, onPageChange }: NotebookViewerProps) {
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [internalPage, setInternalPage] = useState(1)
 
   // 防御：API 可能返回 undefined 或非数组，统一为数组
   const cells = Array.isArray(rawCells) ? rawCells : []
+  const isControlled = controlledPage !== undefined && typeof onPageChange === 'function'
+  const currentPage = isControlled ? controlledPage : internalPage
+  const setCurrentPage = isControlled ? (p: number | ((prev: number) => number)) => onPageChange!(typeof p === 'function' ? p(currentPage) : p) : setInternalPage
 
-  const totalPages = Math.max(1, Math.ceil(cells.length / PAGE_SIZE))
-  const visibleCells = cells.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(cells.length / NOTEBOOK_PAGE_SIZE))
+  const visibleCells = cells.slice((currentPage - 1) * NOTEBOOK_PAGE_SIZE, currentPage * NOTEBOOK_PAGE_SIZE)
   const totalCells = cells.length
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [chapterNumber])
+    if (!isControlled) setInternalPage(1)
+  }, [chapterNumber, isControlled])
 
   // 渲染代码输出（包括图片）
   const renderOutputs = (outputs: any[]) => {
@@ -114,8 +122,8 @@ export default function NotebookViewer({ cells: rawCells, chapterNumber }: Noteb
     )
   }
 
-  // 分页栏始终显示，便于用户看到分页功能（0 节时也显示「第 1/1 页，共 0 节」）
-  const paginationBar = (
+  // 非受控时在组件内显示分页栏；受控时由 ChapterDetail 在标题区显示
+  const paginationBar = !isControlled && (
     <div
       role="navigation"
       aria-label="Notebook 分页"
@@ -149,7 +157,6 @@ export default function NotebookViewer({ cells: rawCells, chapterNumber }: Noteb
 
   return (
     <>
-      {/* 顶部分页：打开即见，无需滚到底 */}
       {paginationBar}
 
       <div className="space-y-3 sm:space-y-4 mt-4">
@@ -196,7 +203,6 @@ export default function NotebookViewer({ cells: rawCells, chapterNumber }: Noteb
         })}
       </div>
 
-      {/* 底部分页栏：与顶部样式一致，更醒目 */}
       {paginationBar}
 
       {/* 图片模态框 */}
