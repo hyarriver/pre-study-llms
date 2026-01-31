@@ -141,6 +141,14 @@ export default function ChapterDetail() {
     setNotebookPage(1)
   }, [chapterId])
 
+  // useMutation 必须在所有条件 return 之前调用，否则会触发 React hooks 数量变化（#310）
+  const convertToDocxMutation = useMutation({
+    mutationFn: () => chaptersApi.convertToDocx(chapterId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapter', chapterId] })
+    },
+  })
+
   const notebookCells = Array.isArray(notebookContent?.cells) ? notebookContent.cells : []
   const notebookTotalCells = notebookCells.length
   const notebookTotalPages = Math.max(1, Math.ceil(notebookTotalCells / NOTEBOOK_PAGE_SIZE))
@@ -216,12 +224,6 @@ export default function ChapterDetail() {
   }
 
   const hasDocx = !!chapter.docx_path
-  const convertToDocxMutation = useMutation({
-    mutationFn: () => chaptersApi.convertToDocx(chapter.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapter', chapterId] })
-    },
-  })
   const handleConvertToDocx = () => {
     convertToDocxMutation.mutate()
   }
