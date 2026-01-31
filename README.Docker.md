@@ -169,10 +169,8 @@ docker inspect dive-into-llms-backend | grep -A 10 Health
    - 自检：`GET /api/test-image` 中 `image_exists: true`；再直接请求 `GET /api/v1/static/chapter1/assets/0.png` 应返回图片。
 
 5. **章节考核显示「本章节暂无考核试题」**:
-   - 试题来自 `documents/exam_questions.json`，初次启动时写入数据库。若该文件在首次启动时不存在或路径错误，试题不会被导入。
-   - 处理：确认 `documents/exam_questions.json` 存在且后端能读取；**部署修复后需重启后端**，使 `init_db` 再次执行。若之前已误建库且 `Question` 一直为空，重启后会自动补导。
-   - 若仍无试题：可删库重建（会清空所有数据）  
-     `rm backend/data/learning_platform.db`，然后重启后端。
+   - **官方章节**：试题来自 `documents/exam_questions.json`，初次启动时写入数据库。若该文件在首次启动时不存在或路径错误，试题不会被导入。处理：确认 `documents/exam_questions.json` 存在且后端能读取；部署修复后需重启后端，使 `init_db` 再次执行。若仍无试题可删库重建（会清空所有数据）`rm backend/data/learning_platform.db` 后重启。
+   - **用户提交章节**：审核通过或「补生成」时会从 PDF/Notebook 调用 LLM 生成考核题。需在环境中配置 **`OPENAI_API_KEY`**（见 `.env.example`）；未配置或文档无有效文本时不会生成题目。补生成时若考核题为 0，接口会返回 400 及具体原因，请按提示检查环境变量与后端日志。
 
 6. **权限问题**: 确保 Docker 有权限访问项目目录
 

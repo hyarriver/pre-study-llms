@@ -238,8 +238,13 @@ class MaterialService:
         if notebook_rel:
             chapter.notebook_path = notebook_rel
 
-        # 生成考核题
-        self._generate_exam_questions(chapter, submission)
+        # 生成考核题（未配置 OPENAI_API_KEY 或文档无文本时可能为 0，不影响审核通过）
+        exam_count = self._generate_exam_questions(chapter, submission)
+        if exam_count == 0:
+            logger.warning(
+                "审核通过但本章节考核题未生成（章节 %s）。请配置 OPENAI_API_KEY 后使用「补生成」重新生成考核题。",
+                chapter.chapter_number,
+            )
 
         # 若用户勾选「同时生成 Word」且为 PDF，则转换并写入 docx_path
         if submission.file_type == "pdf" and getattr(submission, "generate_docx", 0):
@@ -366,11 +371,17 @@ class MaterialService:
             chapter.notebook_path = notebook_rel
 
         self.db.query(Question).filter(Question.chapter_id == chapter_id).delete()
-        self._generate_exam_questions(chapter, None)
+        added = self._generate_exam_questions(chapter, None)
+        if added == 0:
+            raise ValueError(
+                "考核题未生成。请检查：1) 环境变量 OPENAI_API_KEY 是否已配置；"
+                "2) 本章节 PDF/Notebook 是否有可提取文本（扫描版 PDF 需安装 pdfplumber 或 OCR 依赖）；"
+                "3) 查看后端日志获取详细错误。"
+            )
         self.db.commit()
 
-    def _generate_exam_questions(self, chapter: Chapter, submission: Optional[MaterialSubmission]):
-        """从文档提取文本并生成考核题。优先文档；若未生成题目或文档抛错且已有 notebook，则从 notebook 兜底生成。"""
+    def _generate_exam_questions(self, chapter: Chapter, submission: Optional[MaterialSubmission]) -> int:
+        """从文档提取文本并生成考核题。优先文档；若未生成题目或文档抛错且已有 notebook，则从 notebook 兜底生成。返回写入的题目数量。"""
         from app.services.exam_generator import (
             generate_questions_from_document,
             generate_questions_from_notebook,
@@ -422,7 +433,7 @@ class MaterialService:
                 "生成考核题失败：未生成任何题目（章节 %s）。可能原因：OPENAI_API_KEY 未设置、文档/Notebook 无有效文本、或 LLM 调用失败。请检查后端日志与环境配置。",
                 chapter.chapter_number,
             )
-            return
+            return 0
 
         try:
             for idx, q in enumerate(questions_data):
@@ -438,5 +449,7 @@ class MaterialService:
                         order_index=idx + 1,
                     )
                 )
+            return len(questions_data)
         except Exception as e:
             logger.warning("写入考核题到数据库失败（章节 %s）: %s", chapter.chapter_number, e)
+            return 0
