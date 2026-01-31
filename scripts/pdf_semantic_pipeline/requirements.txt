@@ -1,0 +1,6 @@
+surya-ocr>=0.17.0
+pdf2image>=1.16.0
+pymupdf>=1.23.0
+Pillow>=9.0.0
+# pandoc 需系统安装
+# 可选：paddlepaddle paddleocr doctr torch
