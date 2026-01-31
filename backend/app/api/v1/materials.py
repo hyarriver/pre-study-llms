@@ -191,14 +191,20 @@ def preview_submission_file(
     current_user: User = Depends(get_current_admin),
     service: MaterialService = Depends(get_material_service),
 ):
-    """管理员：预览文档（返回文件流）"""
+    """管理员：预览文档（返回文件流）。已通过审核的提交从章节目录取文件。"""
     from fastapi.responses import FileResponse
 
     submission = service.get_by_id(submission_id)
     if not submission:
         raise HTTPException(status_code=404, detail="提交不存在")
-    path = service.get_file_path(submission)
+    path = service.get_preview_file_path(submission)
     if not path.exists():
         raise HTTPException(status_code=404, detail="文件不存在")
-    media_type = "application/pdf" if submission.file_type == "pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    return FileResponse(path=str(path), media_type=media_type, filename=f"preview{'.pdf' if submission.file_type == 'pdf' else '.docx'}")
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        media_type = "application/pdf"
+        filename = "preview.pdf"
+    else:
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        filename = "preview.docx"
+    return FileResponse(path=str(path), media_type=media_type, filename=filename)

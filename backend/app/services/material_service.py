@@ -154,8 +154,25 @@ class MaterialService:
         return self.db.query(MaterialSubmission).filter(MaterialSubmission.id == submission_id).first()
 
     def get_file_path(self, submission: MaterialSubmission) -> Path:
-        """获取提交文件的绝对路径"""
+        """获取提交文件的绝对路径（仅对未审核/驳回有效；已通过后文件已移至章节目录）"""
         return self.base_dir / submission.file_path
+
+    def get_preview_file_path(self, submission: MaterialSubmission) -> Path:
+        """
+        获取用于预览的文档绝对路径。
+        已通过审核的提交，文件已移至章节目录，从关联章节的 pdf_path/docx_path 取；
+        否则从提交时的 file_path 取。
+        """
+        if submission.status == "approved" and submission.chapter_id:
+            chapter = self.db.query(Chapter).filter(Chapter.id == submission.chapter_id).first()
+            if chapter:
+                # 优先使用 PDF/文档路径（章节里 pdf_path 存的是主文档，可能是 .pdf 或 .docx）
+                for rel in (chapter.pdf_path, getattr(chapter, "docx_path", None)):
+                    if rel:
+                        path = self.base_dir / rel
+                        if path.exists():
+                            return path
+        return self.get_file_path(submission)
 
     def approve(self, submission_id: int, admin_id: int) -> Chapter:
         """审核通过：创建章节、移动文件、生成考核题"""
