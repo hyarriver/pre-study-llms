@@ -47,10 +47,17 @@ if [ -f "backend/requirements.txt" ]; then
         venv/bin/pip install --upgrade pip --quiet
         venv/bin/pip install -r requirements.txt --quiet
     else
-        log_warn "未找到虚拟环境，尝试系统安装（可能需要 --break-system-packages）..."
-        pip install -r requirements.txt --quiet --break-system-packages 2>/dev/null || \
-        pip3 install -r requirements.txt --quiet --break-system-packages 2>/dev/null || \
-        log_warn "依赖安装失败，请手动创建虚拟环境"
+        log_warn "未找到虚拟环境 venv，尝试系统 pip..."
+        for pip_cmd in "python3 -m pip" "python -m pip" "pip3" "pip"; do
+            if $pip_cmd --version &>/dev/null; then
+                $pip_cmd install -r requirements.txt --quiet --break-system-packages 2>/dev/null || \
+                $pip_cmd install -r requirements.txt --quiet 2>/dev/null || true
+                break
+            fi
+        done
+        if ! python3 -c "import fastapi" 2>/dev/null; then
+            log_warn "依赖可能未完全安装。建议: cd backend && python3 -m venv venv && venv/bin/pip install -r requirements.txt"
+        fi
     fi
     
     cd ..
@@ -92,18 +99,35 @@ log_info "正在重启后端服务..."
 
 # 智能查找并重启服务
 RESTARTED=false
+HAS_PM2=$(command -v pm2 2>/dev/null && echo "yes" || echo "no")
 
-# 方式1: 检查 PM2
-PM2_PROCESS=$(pm2 list 2>/dev/null | grep -E "api|backend|uvicorn|llm|dive" | awk '{print $4}' | head -1)
-if [ ! -z "$PM2_PROCESS" ]; then
-    log_info "在 PM2 中找到服务: $PM2_PROCESS"
-    pm2 restart "$PM2_PROCESS" --update-env
-    RESTARTED=true
+# 方式1: 检查 PM2（仅当 pm2 可用时）
+if [ "$HAS_PM2" = "yes" ]; then
+    PM2_PROCESS=$(pm2 list 2>/dev/null | grep -E "api|backend|uvicorn|llm|dive" | awk '{print $4}' | head -1 || true)
+    if [ ! -z "$PM2_PROCESS" ]; then
+        log_info "在 PM2 中找到服务: $PM2_PROCESS"
+        pm2 restart "$PM2_PROCESS" --update-env
+        RESTARTED=true
+    fi
 fi
 
-# 方式2: 检查 systemd
+# 方式2: 检查 Docker Compose
+if [ "$RESTARTED" = false ] && [ -f "$PROJECT_ROOT/compose.yml" ]; then
+    if command -v docker &> /dev/null; then
+        cd "$PROJECT_ROOT"
+        if docker compose version &> /dev/null; then
+            log_info "使用 Docker Compose 重启后端..."
+            docker compose up -d --build backend 2>/dev/null && RESTARTED=true || true
+        elif docker-compose version &> /dev/null; then
+            log_info "使用 docker-compose 重启后端..."
+            docker-compose up -d --build backend 2>/dev/null && RESTARTED=true || true
+        fi
+    fi
+fi
+
+# 方式3: 检查 systemd
 if [ "$RESTARTED" = false ]; then
-    SYSTEMD_SERVICE=$(systemctl list-units --type=service --all 2>/dev/null | grep -E "api|backend|uvicorn|llm|dive" | awk '{print $1}' | head -1)
+    SYSTEMD_SERVICE=$(systemctl list-units --type=service --all 2>/dev/null | grep -E "api|backend|uvicorn|llm|dive" | awk '{print $1}' | head -1 || true)
     if [ ! -z "$SYSTEMD_SERVICE" ]; then
         log_info "在 systemd 中找到服务: $SYSTEMD_SERVICE"
         sudo systemctl restart "$SYSTEMD_SERVICE"
@@ -111,52 +135,65 @@ if [ "$RESTARTED" = false ]; then
     fi
 fi
 
-# 方式3: 检查直接运行的进程
+# 方式4: 检查直接运行的进程
 if [ "$RESTARTED" = false ]; then
-    UVICORN_PID=$(ps aux | grep "uvicorn.*app.main:app" | grep -v grep | awk '{print $2}' | head -1)
+    UVICORN_PID=$(ps aux | grep "uvicorn.*app.main:app" | grep -v grep | awk '{print $2}' | head -1 || true)
     if [ ! -z "$UVICORN_PID" ]; then
-        log_warn "找到直接运行的进程 PID: $UVICORN_PID，建议使用 PM2 管理"
-        log_info "正在停止旧进程并使用 PM2 启动..."
+        log_info "找到运行中的进程 PID: $UVICORN_PID，正在重启..."
         kill $UVICORN_PID 2>/dev/null || true
         sleep 2
         cd "$PROJECT_ROOT/backend"
-        # 尝试不同的 uvicorn 启动方式（优先使用虚拟环境）
         if [ -f "venv/bin/python" ]; then
-            pm2 start venv/bin/python --name "dive-into-llms-api" --interpreter none --cwd "$PROJECT_ROOT/backend" -- -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+            nohup venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
         elif command -v uvicorn &> /dev/null; then
-            pm2 start uvicorn --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
-        elif python3 -m uvicorn --help &> /dev/null; then
-            pm2 start "python3 -m uvicorn" --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
+            nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
         else
-            pm2 start "python -m uvicorn" --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
+            nohup python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
         fi
-        pm2 save
         RESTARTED=true
     fi
 fi
 
-# 方式4: 如果都没有找到，使用 PM2 启动
-if [ "$RESTARTED" = false ]; then
-    log_warn "未找到运行中的服务，使用 PM2 启动新服务..."
+# 方式5: 使用 PM2 启动（仅当 pm2 可用时）
+if [ "$RESTARTED" = false ] && [ "$HAS_PM2" = "yes" ]; then
+    log_info "使用 PM2 启动新服务..."
     cd "$PROJECT_ROOT/backend"
-    # 尝试不同的 uvicorn 启动方式（优先使用虚拟环境）
     if [ -f "venv/bin/python" ]; then
         pm2 start venv/bin/python --name "dive-into-llms-api" --interpreter none --cwd "$PROJECT_ROOT/backend" -- -m uvicorn app.main:app --host 0.0.0.0 --port 8000
     elif command -v uvicorn &> /dev/null; then
         pm2 start uvicorn --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
-    elif python3 -m uvicorn --help &> /dev/null; then
-        pm2 start "python3 -m uvicorn" --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
     else
-        pm2 start "python -m uvicorn" --name "dive-into-llms-api" -- app.main:app --host 0.0.0.0 --port 8000
+        pm2 start "python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000" --name "dive-into-llms-api"
     fi
-    pm2 save
+    pm2 save 2>/dev/null || true
     RESTARTED=true
+fi
+
+# 方式6: pm2 不可用时的后备方案
+if [ "$RESTARTED" = false ]; then
+    if [ "$HAS_PM2" = "no" ]; then
+        log_warn "未找到 pm2，尝试直接启动后端..."
+        cd "$PROJECT_ROOT/backend"
+        if [ -f "venv/bin/python" ]; then
+            nohup venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
+        elif command -v uvicorn &> /dev/null; then
+            nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
+        else
+            nohup python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 >> /tmp/dive-llms.log 2>&1 &
+        fi
+        sleep 2
+        if pgrep -f "uvicorn.*app.main:app" > /dev/null; then
+            RESTARTED=true
+            log_info "后端已启动，日志: /tmp/dive-llms.log（建议安装 pm2: npm i -g pm2）"
+        fi
+    fi
 fi
 
 if [ "$RESTARTED" = true ]; then
     log_info "服务重启/启动完成"
 else
-    log_error "无法重启服务，请手动检查"
+    log_warn "无法自动重启服务。请手动执行: cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    log_warn "或安装 pm2: npm i -g pm2"
 fi
 
 log_info "部署完成！"
