@@ -5,20 +5,14 @@ import NeuralNetworkBackground from '@/components/NeuralNetworkBackground'
 import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
 import { useAuthStore } from '@/store/authStore'
 import { useStudyStatistics } from '@/hooks/useProgress'
+import { useChapters } from '@/hooks/useChapters'
 
-const chapters = [
-  { num: '01', title: '微调与部署', desc: '预训练模型微调与部署指南', icon: Cpu },
-  { num: '02', title: '提示学习', desc: '大模型API调用与推理', icon: Zap },
-  { num: '03', title: '知识编辑', desc: '语言模型的编辑方法', icon: Layers },
-  { num: '04', title: '数学推理', desc: '让大模型学会数学推理', icon: Brain },
-  { num: '05', title: '模型水印', desc: '文本水印技术', icon: Shield },
-  { num: '06', title: '越狱攻击', desc: '大模型安全攻防', icon: Lock },
-  { num: '07', title: '大模型隐写', desc: '"看不见的墨水"技术', icon: Code },
-  { num: '08', title: '多模态模型', desc: '多模态理解与生成', icon: Sparkles },
-  { num: '09', title: 'GUI智能体', desc: 'AI Agent操作指南', icon: Bot },
-  { num: '10', title: '智能体安全', desc: '开放场景风险识别', icon: Shield },
-  { num: '11', title: 'RLHF对齐', desc: '基于PPO的安全对齐', icon: Lock },
+const CHAPTER_ICONS = [
+  Cpu, Zap, Layers, Brain, Shield, Lock, Code, Sparkles, Bot, Shield, Lock,
 ]
+function getChapterIcon(index: number) {
+  return CHAPTER_ICONS[index % CHAPTER_ICONS.length]
+}
 
 function formatStudyTime(seconds: number): string {
   if (seconds < 60) return `${seconds}秒`
@@ -32,6 +26,7 @@ function formatStudyTime(seconds: number): string {
 export default function Home() {
   const isAuth = !!useAuthStore((s) => s.user)
   const { data: stats } = useStudyStatistics()
+  const { data: chapters = [], isLoading: chaptersLoading } = useChapters()
   
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -111,7 +106,9 @@ export default function Home() {
             ) : (
               <>
                 <div className="text-center">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">11</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">
+                    {chapters.length}
+                  </div>
                   <div className="text-xs sm:text-sm text-muted-foreground mt-1">章节教程</div>
                 </div>
                 <div className="text-center">
@@ -189,35 +186,42 @@ export default function Home() {
           </div>
           
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-4">
-            {chapters.map((chapter) => {
-              const Icon = chapter.icon
-              return (
-                <Link
-                  key={chapter.num}
-                  to={`/chapters/${chapter.num}`}
-                  className="group glass-card rounded-xl p-3 sm:p-4 md:p-5 hover:scale-105 active:scale-[0.98] transition-all duration-300 touch-manipulation min-h-[100px] sm:min-h-[120px]"
-                >
-                  <div className="flex items-start space-x-3 sm:space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all">
-                        <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 group-hover:text-blue-300" />
+            {chaptersLoading ? (
+              <p className="col-span-full text-center text-muted-foreground text-sm py-8">加载中...</p>
+            ) : chapters.length === 0 ? (
+              <p className="col-span-full text-center text-muted-foreground text-sm py-8">暂无章节</p>
+            ) : (
+              chapters.map((chapter) => {
+                const Icon = getChapterIcon(chapter.chapter_number - 1)
+                const numStr = String(chapter.chapter_number).padStart(2, '0')
+                return (
+                  <Link
+                    key={chapter.id}
+                    to={`/chapters/${chapter.id}`}
+                    className="group glass-card rounded-xl p-3 sm:p-4 md:p-5 hover:scale-105 active:scale-[0.98] transition-all duration-300 touch-manipulation min-h-[100px] sm:min-h-[120px]"
+                  >
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all">
+                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 group-hover:text-blue-300" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xs font-mono text-blue-400/70">Chapter {numStr}</span>
+                        </div>
+                        <h3 className="text-sm sm:text-base font-semibold text-foreground group-hover:text-blue-300 transition-colors truncate">
+                          {chapter.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                          {chapter.description ?? ''}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-xs font-mono text-blue-400/70">Chapter {chapter.num}</span>
-                      </div>
-                      <h3 className="text-sm sm:text-base font-semibold text-foreground group-hover:text-blue-300 transition-colors truncate">
-                        {chapter.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                        {chapter.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+                  </Link>
+                )
+              })
+            )}
           </div>
         </div>
 

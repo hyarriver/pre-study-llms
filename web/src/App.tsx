@@ -7,6 +7,7 @@ import ChapterDetail from './pages/ChapterDetail'
 import Login from './pages/Login'
 import MaterialUpload from './pages/MaterialUpload'
 import AdminMaterialReview from './pages/AdminMaterialReview'
+import AdminChapterManage from './pages/AdminChapterManage'
 import { useAuthStore } from './store/authStore'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/materials/upload" element={<MaterialUpload />} />
           <Route path="/admin/materials" element={<AdminMaterialReview />} />
+          <Route path="/admin/chapters" element={<AdminChapterManage />} />
         </Routes>
       </Layout>
     </Router>

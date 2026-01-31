@@ -33,6 +33,7 @@ export default function AdminMaterialReview() {
       materialsApi.reject(id, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending'] })
+      queryClient.invalidateQueries({ queryKey: ['chapters'] })
       setRejectingId(null)
       setRejectReason('')
     },

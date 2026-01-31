@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Home, LogIn, LogOut, Upload, ShieldCheck } from 'lucide-react'
+import { BookOpen, Home, LogIn, LogOut, Upload, ShieldCheck, ListOrdered } from 'lucide-react'
 import { Button } from './ui/button'
 import { useAuthStore } from '@/store/authStore'
 import MobileMenu from './MobileMenu'
@@ -74,16 +74,28 @@ export default function Layout({ children }: LayoutProps) {
                 </Button>
               )}
               {isAuth && user?.role === 'admin' && (
-                <Button
-                  variant={location.pathname === '/admin/materials' ? 'default' : 'ghost'}
-                  size="sm"
-                  asChild
-                >
-                  <Link to="/admin/materials">
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    <span className="hidden lg:inline">管理审核</span>
-                  </Link>
-                </Button>
+                <>
+                  <Button
+                    variant={location.pathname === '/admin/chapters' ? 'default' : 'ghost'}
+                    size="sm"
+                    asChild
+                  >
+                    <Link to="/admin/chapters">
+                      <ListOrdered className="mr-2 h-4 w-4" />
+                      <span className="hidden lg:inline">学习目录</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant={location.pathname === '/admin/materials' ? 'default' : 'ghost'}
+                    size="sm"
+                    asChild
+                  >
+                    <Link to="/admin/materials">
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      <span className="hidden lg:inline">管理审核</span>
+                    </Link>
+                  </Button>
+                </>
               )}
               {isAuth ? (
                 <>

@@ -3,8 +3,8 @@
 """
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.models import Chapter, Progress
-from app.schemas.chapter import ChapterResponse
+from app.models import Chapter, Progress, MaterialSubmission
+from app.schemas.chapter import ChapterResponse, ChapterUpdate
 from app.core.exceptions import ChapterNotFoundError
 
 
@@ -67,3 +67,52 @@ class ChapterService:
             completion_percentage=progress.completion_percentage if progress else 0.0,
             completed=bool(progress.completed) if progress else False,
         )
+
+    def update(self, chapter_id: int, data: ChapterUpdate) -> ChapterResponse:
+        """管理员：更新章节"""
+        chapter = self.db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        if not chapter:
+            raise ChapterNotFoundError(chapter_id)
+        if data.chapter_number is not None:
+            chapter.chapter_number = data.chapter_number
+        if data.title is not None:
+            chapter.title = data.title
+        if data.description is not None:
+            chapter.description = data.description
+        if data.notebook_path is not None:
+            chapter.notebook_path = data.notebook_path
+        if data.readme_path is not None:
+            chapter.readme_path = data.readme_path
+        if data.pdf_path is not None:
+            chapter.pdf_path = data.pdf_path
+        self.db.commit()
+        self.db.refresh(chapter)
+        return self.get_by_id(chapter_id, user_id=None)
+
+    def reorder(self, ordered_ids: List[int]) -> None:
+        """管理员：按 ordered_ids 顺序重写 chapter_number（1,2,3,...），避免唯一约束冲突先设为负数再设回。"""
+        if not ordered_ids:
+            return
+        # 先全部设为负数，避免唯一约束冲突
+        for i, cid in enumerate(ordered_ids):
+            ch = self.db.query(Chapter).filter(Chapter.id == cid).first()
+            if ch:
+                ch.chapter_number = -(i + 1)
+        self.db.commit()
+        # 再设为目标顺序
+        for i, cid in enumerate(ordered_ids):
+            ch = self.db.query(Chapter).filter(Chapter.id == cid).first()
+            if ch:
+                ch.chapter_number = i + 1
+        self.db.commit()
+
+    def delete(self, chapter_id: int) -> None:
+        """管理员：删除章节。先解除 MaterialSubmission 关联，再删除 Chapter（级联删除 Progress/Note/Question/ExamRecord）。"""
+        chapter = self.db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        if not chapter:
+            raise ChapterNotFoundError(chapter_id)
+        self.db.query(MaterialSubmission).filter(MaterialSubmission.chapter_id == chapter_id).update(
+            {"chapter_id": None}
+        )
+        self.db.delete(chapter)
+        self.db.commit()

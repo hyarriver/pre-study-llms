@@ -3,7 +3,7 @@
 """
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 
 class ChapterBase(BaseModel):
@@ -23,11 +23,17 @@ class ChapterCreate(ChapterBase):
 
 class ChapterUpdate(BaseModel):
     """更新章节模型"""
+    chapter_number: Optional[int] = None
     title: Optional[str] = None
     description: Optional[str] = None
     notebook_path: Optional[str] = None
     readme_path: Optional[str] = None
     pdf_path: Optional[str] = None
+
+
+class ChapterReorderRequest(BaseModel):
+    """管理员排序章节请求"""
+    ordered_ids: List[int]
 
 
 class ChapterResponse(ChapterBase):
