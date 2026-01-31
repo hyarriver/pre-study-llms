@@ -11,11 +11,8 @@ import { useNotebookContent, useReadme } from '@/hooks/useNotebook'
 import { useUpdateProgress } from '@/hooks/useProgress'
 import { useStudyTimer } from '@/hooks/useStudyTimer'
 import { useAuthStore } from '@/store/authStore'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
 import NotebookViewer from '@/components/NotebookViewer'
-import { createMarkdownComponents } from '@/components/MarkdownComponents'
+import ReadmeViewer from '@/components/ReadmeViewer'
 import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink, FileDown } from 'lucide-react'
 import ExamPanel from '@/components/ExamPanel'
 import { useExamStatus, useChapterExamInfo } from '@/hooks/useExam'
@@ -39,7 +36,7 @@ export default function ChapterDetail() {
   const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId, hasNotebook)
   const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId, hasReadme)
   const { data: examStatus } = useExamStatus(chapterId, { enabled: isAuth })
-  const { data: examInfo } = useChapterExamInfo(chapterId, { enabled: !isAuth })
+  useChapterExamInfo(chapterId, { enabled: !isAuth })
   const updateProgress = useUpdateProgress()
 
   // 学习时长追踪
@@ -403,17 +400,10 @@ export default function ChapterDetail() {
                   <Skeleton className="h-24 w-full rounded" />
                 </div>
               ) : readmeContent ? (
-                <div className="prose prose-invert max-w-none break-words overflow-wrap-anywhere">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={createMarkdownComponents({
-                      chapterNumber: chapter.chapter_number,
-                    })}
-                  >
-                    {readmeContent}
-                  </ReactMarkdown>
-                </div>
+                <ReadmeViewer
+                  content={readmeContent}
+                  chapterNumber={chapter.chapter_number}
+                />
               ) : (
                 <p className="text-muted-foreground">README 内容为空</p>
               )}
