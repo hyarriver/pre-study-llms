@@ -60,7 +60,6 @@ export default function ReadmeViewer({ content, chapterNumber }: ReadmeViewerPro
 
   return (
     <>
-      {paginationBar}
       <div className="prose prose-invert max-w-none break-words overflow-wrap-anywhere">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
