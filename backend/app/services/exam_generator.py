@@ -8,7 +8,7 @@ import re
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 MAX_MATERIAL_CHARS = 14000
@@ -280,6 +280,40 @@ def generate_questions_from_document(
     return _call_llm(material, chapter_number, title)
 
 
+def generate_questions_from_notebook(
+    notebook_path: Path,
+    chapter_number: int,
+    title: str,
+) -> List[dict]:
+    """
+    从已生成的 .ipynb 提取所有 cell 文本，调用 LLM 生成考核题。
+    用于文档提取失败时的兜底（如扫描版 PDF 无文本，但已有 notebook）。
+    """
+    if not notebook_path.exists():
+        logger.warning("Notebook 文件不存在: %s", notebook_path)
+        return []
+    try:
+        import nbformat
+
+        nb = nbformat.read(notebook_path, as_version=4)
+        parts = []
+        for cell in nb.cells:
+            src = cell.source if isinstance(cell.source, str) else "".join(cell.source)
+            if src.strip():
+                parts.append(src.strip())
+        material = "\n\n".join(parts)
+    except Exception as e:
+        logger.warning("读取 Notebook 失败: %s", e)
+        return []
+    if not material.strip():
+        logger.warning("Notebook 无有效文本内容，跳过考核题生成")
+        return []
+    if len(material) > MAX_MATERIAL_CHARS:
+        material = material[:MAX_MATERIAL_CHARS] + "\n\n[内容已截断]"
+    logger.info("从 Notebook 生成考核题（章节 %s）", chapter_number)
+    return _call_llm(material, chapter_number, title)
+
+
 def generate_readme_from_document(
     doc_path: Path,
     title: str,
@@ -471,13 +505,96 @@ def generate_notebook_from_document(
         return _material_to_cells_fallback(material, title, description)
 
 
-def write_notebook_to_file(cells_content: List[str], output_path: Path) -> bool:
-    """将 markdown cells 写入 .ipynb 文件。"""
+# 围栏代码块正则：在内容中匹配 ```可选语言\n 代码内容 \n```（末尾换行可选）
+_FENCED_BLOCK = re.compile(r"```(\w*)\s*\n([\s\S]*?)\n?```", re.MULTILINE)
+
+
+def _split_markdown_into_cells(md_content: str) -> List[Dict[str, Any]]:
+    """
+    将一段 markdown 按围栏代码块拆成多个 cell：普通文本为 markdown cell，
+    代码块为 code cell 并带上 language（python/js/md 等）。
+    """
+    cells: List[Dict[str, Any]] = []
+    rest = md_content
+    while rest:
+        m = _FENCED_BLOCK.search(rest)
+        if not m:
+            before = rest.strip()
+            if before:
+                cells.append({"cell_type": "markdown", "source": before})
+            break
+        lang = (m.group(1) or "").strip().lower() or "text"
+        code = (m.group(2) or "").rstrip()
+        # 前面的 markdown
+        before = rest[: m.start()].strip()
+        if before:
+            cells.append({"cell_type": "markdown", "source": before})
+        cells.append({"cell_type": "code", "source": code, "language": lang})
+        rest = rest[m.end() :].lstrip()
+    return cells
+
+
+def _expand_cells_to_mixed(cells_content: List[str]) -> List[Dict[str, Any]]:
+    """将纯 markdown 字符串列表展开为含 code 的 cell 列表（识别 python/js/md 等）。"""
+    result: List[Dict[str, Any]] = []
+    for content in cells_content:
+        if not (content or isinstance(content, str)):
+            continue
+        content = content.strip()
+        if not content:
+            continue
+        parts = _split_markdown_into_cells(content)
+        if parts:
+            result.extend(parts)
+        else:
+            result.append({"cell_type": "markdown", "source": content})
+    return result
+
+
+def write_notebook_to_file(
+    cells_content: List[Union[str, Dict[str, Any]]], output_path: Path
+) -> bool:
+    """
+    将 cells 写入 .ipynb 文件。
+    - 若元素为 str，视为 markdown cell。
+    - 若元素为 dict，需含 cell_type、source；code cell 可含 language（如 python/js/md）。
+    - 若全部为 str，会先按围栏代码块展开为 markdown+code 混合再写入。
+    """
     try:
         import nbformat as nbf
+
+        # 若全是字符串，先展开为混合 cells（识别代码块语言）
+        if cells_content and all(isinstance(c, str) for c in cells_content):
+            cells_data = _expand_cells_to_mixed([str(c) for c in cells_content])
+        else:
+            cells_data = []
+            for c in cells_content:
+                if isinstance(c, str):
+                    c = {"cell_type": "markdown", "source": c}
+                if not isinstance(c, dict) or c.get("cell_type") not in (
+                    "markdown",
+                    "code",
+                ):
+                    continue
+                cells_data.append(c)
+
         nb = nbf.v4.new_notebook()
-        for content in cells_content:
-            nb.cells.append(nbf.v4.new_markdown_cell(content))
+        for c in cells_data:
+            ct = c.get("cell_type", "markdown")
+            src = c.get("source") or ""
+            if isinstance(src, list):
+                src = "".join(src)
+            if ct == "code":
+                meta = {}
+                if c.get("language"):
+                    meta["language"] = c["language"]
+                cell = nbf.v4.new_code_cell(src)
+                if meta:
+                    cell.metadata.update(meta)
+                nb.cells.append(cell)
+            else:
+                nb.cells.append(nbf.v4.new_markdown_cell(src))
+
         with open(output_path, "w", encoding="utf-8") as f:
             nbf.write(nb, f)
         return True

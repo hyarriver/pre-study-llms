@@ -47,7 +47,7 @@ interface StatCardProps {
 
 function StatCard({ icon, title, value, subtitle, className = '' }: StatCardProps) {
   return (
-    <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-background/50 ${className}`}>
+    <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl glass-panel ${className}`}>
       <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">{icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-xs sm:text-sm text-muted-foreground truncate">{title}</p>
@@ -69,7 +69,7 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
   // 未登录时显示登录提示
   if (!isAuth) {
     return (
-      <Card className="glass-card">
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
@@ -95,7 +95,7 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
@@ -157,7 +157,7 @@ export default function StudyStatisticsPanel({ compact = false }: StudyStatistic
 
   // 完整模式（用于章节列表页）
   return (
-    <Card className="glass-card">
+    <Card variant="glass">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />

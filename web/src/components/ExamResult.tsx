@@ -31,7 +31,7 @@ export default function ExamResult({ result, questions, onRetry }: ExamResultPro
   return (
     <div className="space-y-6">
       {/* 成绩总览卡片 */}
-      <Card className="overflow-hidden">
+      <Card variant="glass" className="overflow-hidden">
         <div className={cn(
           'h-2',
           result.percentage >= 60 ? 'bg-green-500' : 'bg-red-500'

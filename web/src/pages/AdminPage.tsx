@@ -169,7 +169,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold">管理员中心</h1>
-        <Card>
+        <Card variant="glass">
           <CardContent className="pt-6">
             <p className="text-muted-foreground mb-4">请先登录</p>
             <Button asChild>
@@ -185,7 +185,7 @@ export default function AdminPage() {
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold">管理员中心</h1>
-        <Card>
+        <Card variant="glass">
           <CardContent className="pt-6">
             <p className="text-destructive">您没有管理员权限</p>
           </CardContent>
@@ -218,7 +218,7 @@ export default function AdminPage() {
         </TabsList>
 
         <TabsContent value="pending" className="mt-6">
-          <Card>
+          <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -322,7 +322,7 @@ export default function AdminPage() {
         </TabsContent>
 
         <TabsContent value="all" className="mt-6">
-          <Card>
+          <Card variant="glass">
             <CardHeader>
               <CardTitle>全部提交记录</CardTitle>
               <CardDescription>含用户已删除记录；可预览、通过、驳回或彻底删除</CardDescription>
@@ -455,7 +455,7 @@ export default function AdminPage() {
 
         <TabsContent value="chapters" className="mt-6">
           {editingChapter && (
-            <Card className="mb-6">
+            <Card variant="glass" className="mb-6">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>编辑章节</CardTitle>
                 <Button
@@ -547,7 +547,7 @@ export default function AdminPage() {
             </Card>
           )}
 
-          <Card>
+          <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ListOrdered className="h-5 w-5" />

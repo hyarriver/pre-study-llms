@@ -17,7 +17,7 @@ function ChapterListSkeleton() {
       <StudyStatisticsPanel />
       <div className="grid gap-3 sm:gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
+          <Card key={i} variant="glass">
             <CardHeader className="pb-3 sm:pb-6">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0 space-y-2">
@@ -71,7 +71,7 @@ export default function ChapterList() {
 
       <div className="grid gap-3 sm:gap-4">
         {chapters.map((chapter) => (
-          <Card key={chapter.id} className="hover:shadow-lg transition-shadow active:scale-[0.98] touch-manipulation">
+          <Card key={chapter.id} variant="glass" className="transition-shadow active:scale-[0.98] touch-manipulation">
             <CardHeader className="pb-3 sm:pb-6">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">

@@ -76,7 +76,7 @@ export default function Login() {
       </div>
 
       {backendOnline === false && (
-        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+        <div className="rounded-xl glass-panel border-amber-500/30 px-4 py-3 text-sm text-amber-200">
           <p className="font-medium">后端未连接</p>
           <p className="mt-1 text-muted-foreground">
             请先在 <code className="rounded bg-muted px-1">backend</code> 目录运行：
@@ -97,7 +97,7 @@ export default function Login() {
         </div>
       )}
 
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl">登录 / 注册</CardTitle>
           <CardDescription className="text-sm">

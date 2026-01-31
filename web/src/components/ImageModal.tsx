@@ -71,7 +71,7 @@ export default function ImageModal({ src, alt, isOpen, onClose }: ImageModalProp
   const modalContent = (
     <div
       className={cn(
-        "fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm transition-opacity duration-200 ease-in-out",
+        "fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-lg transition-opacity duration-200 ease-in-out",
         isOpen ? "opacity-100" : "opacity-0"
       )}
       onClick={onClose}

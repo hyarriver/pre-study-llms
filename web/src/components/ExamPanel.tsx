@@ -101,7 +101,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   // 未登录提示
   if (!isAuth) {
     return (
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -132,7 +132,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
         ? '加载试题失败，请重试'
         : '加载考试状态失败，请重试'
     return (
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -163,7 +163,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   // 加载中
   if (questionsLoading || statusLoading) {
     return (
-      <Card>
+      <Card variant="glass">
         <CardContent className="py-12">
           <div className="flex items-center justify-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -177,7 +177,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   // 没有试题
   if (!questions || questions.length === 0) {
     return (
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -210,7 +210,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
     return (
       <div className="space-y-4">
         {/* 考试进度条 */}
-        <Card className="sticky top-0 z-10 bg-background/95 backdrop-blur">
+        <Card variant="glass" className="sticky top-0 z-10">
           <CardContent className="py-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">
@@ -236,7 +236,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
         ))}
 
         {/* 提交按钮 */}
-        <Card>
+        <Card variant="glass">
           <CardContent className="py-3 sm:py-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
@@ -273,7 +273,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   return (
     <div className="space-y-4">
       {/* 考试信息卡片 */}
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -358,7 +358,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
 
       {/* 历史记录 */}
       {examRecords && examRecords.length > 0 && (
-        <Card>
+        <Card variant="glass">
           <CardHeader className="cursor-pointer" onClick={() => setShowHistory(!showHistory)}>
             <CardTitle className="flex items-center justify-between text-base">
               <span className="flex items-center gap-2">

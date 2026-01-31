@@ -79,7 +79,7 @@ export default function MaterialUpload() {
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold">上传学习资料</h1>
-        <Card>
+        <Card variant="glass">
           <CardContent className="pt-6">
             <p className="text-muted-foreground mb-4">请先登录后再上传学习资料</p>
             <Button asChild>
@@ -98,7 +98,7 @@ export default function MaterialUpload() {
         上传 PDF 或 DOCX 格式的学习文档，经管理员审核通过后将作为新章节加入平台，支持文档下载和章节考核。
       </p>
 
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
@@ -159,7 +159,7 @@ export default function MaterialUpload() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />

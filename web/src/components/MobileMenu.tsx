@@ -53,7 +53,7 @@ export default function MobileMenu() {
       {/* 移动端菜单面板 */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background/95 backdrop-blur-xl border-l border-white/10 md:hidden transform transition-transform duration-300 ease-in-out',
+          'fixed top-0 right-0 h-full w-80 max-w-[85vw] glass-nav border-l border-white/10 md:hidden transform transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{ zIndex: 9999 }}

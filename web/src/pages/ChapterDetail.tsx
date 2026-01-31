@@ -36,8 +36,7 @@ export default function ChapterDetail() {
   const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId, hasNotebook)
   const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId, hasReadme)
   const { data: examStatus } = useExamStatus(chapterId, { enabled: isAuth })
-  const { data: examInfo } = useChapterExamInfo(chapterId, { enabled: !isAuth })
-  const hasExamQuestions = isAuth ? (examStatus?.has_questions ?? false) : (examInfo?.has_questions ?? false)
+  useChapterExamInfo(chapterId, { enabled: !isAuth })
   const updateProgress = useUpdateProgress()
 
   // 学习时长追踪
@@ -117,13 +116,8 @@ export default function ChapterDetail() {
     'exam',  // 始终包含，无题时由 ExamPanel 显示空状态
   ].filter(Boolean) as string[]
 
-  // 点击章节考核时：若无考核题则自动跳转到 Notebook 页（若无 Notebook 则跳转到第一个可用标签）
+  // 允许用户自由切换 tab，包括无考核题时也可进入章节考核页查看空状态
   const handleTabChange = (value: string) => {
-    if (value === 'exam' && !hasExamQuestions && validTabs.length > 0) {
-      const fallback = validTabs.find((t) => t !== 'exam') ?? validTabs[0]
-      setActiveTab(fallback)
-      return
-    }
     setActiveTab(value)
   }
 
@@ -149,7 +143,7 @@ export default function ChapterDetail() {
             <Skeleton className="h-4 w-full max-w-xl" />
           </div>
         </div>
-        <Card>
+        <Card variant="glass">
           <CardHeader>
             <Skeleton className="h-6 w-24" />
             <Skeleton className="h-4 w-48" />
@@ -254,7 +248,7 @@ export default function ChapterDetail() {
         )}
       </div>
 
-      <Card>
+      <Card variant="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <BookMarked className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
@@ -320,7 +314,7 @@ export default function ChapterDetail() {
 
             {/* 当前阅读进度提示（固定定位，避免随滚动出现/消失时造成整页布局抖动） */}
             {isAuth && readProgress > 0 && readProgress > chapter.completion_percentage && (
-              <div className="fixed bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 text-sm text-blue-400 shadow-lg border border-blue-500/20 max-w-[calc(100vw-2rem)]">
+              <div className="fixed bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg glass-panel text-sm text-blue-400 max-w-[calc(100vw-2rem)] border-blue-500/20">
                 <Clock className="h-4 w-4 flex-shrink-0" />
                 <span>阅读 {readProgress}%（自动保存）</span>
               </div>
@@ -365,7 +359,7 @@ export default function ChapterDetail() {
 
         {hasNotebook && (
         <TabsContent value="notebook" className="mt-6">
-          <Card>
+          <Card variant="glass">
             <CardHeader>
               <CardTitle>Jupyter Notebook 内容</CardTitle>
             </CardHeader>
@@ -396,7 +390,7 @@ export default function ChapterDetail() {
 
         {hasReadme && (
         <TabsContent value="readme" className="mt-6">
-          <Card>
+          <Card variant="glass">
             <CardHeader>
               <CardTitle>README</CardTitle>
             </CardHeader>
@@ -425,7 +419,7 @@ export default function ChapterDetail() {
 
         {hasDocument && (
           <TabsContent value="pdf" className="mt-6">
-            <Card>
+            <Card variant="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />

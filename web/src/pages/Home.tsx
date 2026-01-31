@@ -72,7 +72,7 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-5 md:py-6 rounded-xl border-white/20 hover:bg-white/10 active:bg-white/10 min-h-[48px] w-full sm:w-auto touch-manipulation">
+            <Button asChild variant="glass" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-5 md:py-6 rounded-xl min-h-[48px] w-full sm:w-auto touch-manipulation">
               <a href="https://github.com/hyarriver/pre-study-llms" target="_blank" rel="noopener noreferrer">
                 GitHub
                 <Code className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />

@@ -353,9 +353,12 @@ class MaterialService:
         self.db.commit()
 
     def _generate_exam_questions(self, chapter: Chapter, submission: Optional[MaterialSubmission]):
-        """从文档提取文本并生成考核题。优先使用已生成的 DOCX，否则用 PDF（含 OCR 增强）。"""
+        """从文档提取文本并生成考核题。优先文档；若未生成题目且已有 notebook，则从 notebook 兜底生成。"""
         try:
-            from app.services.exam_generator import generate_questions_from_document
+            from app.services.exam_generator import (
+                generate_questions_from_document,
+                generate_questions_from_notebook,
+            )
             # 优先使用已转换的 DOCX（与转换后文档一致），否则用 PDF
             doc_path = None
             if getattr(chapter, "docx_path", None):
@@ -364,18 +367,31 @@ class MaterialService:
                     doc_path = candidate
             if not doc_path and chapter.pdf_path:
                 doc_path = self.base_dir / chapter.pdf_path
-            if not doc_path or not doc_path.exists():
-                logger.warning("章节 %s 无文档路径或文件不存在，跳过考核题生成", chapter.chapter_number)
-                return
-            questions_data = generate_questions_from_document(
-                doc_path,
-                chapter.chapter_number,
-                chapter.title,
-                use_enhanced=True,
-            )
+
+            questions_data = []
+            if doc_path and doc_path.exists():
+                questions_data = generate_questions_from_document(
+                    doc_path,
+                    chapter.chapter_number,
+                    chapter.title,
+                    use_enhanced=True,
+                )
+            else:
+                logger.warning("章节 %s 无文档路径或文件不存在，尝试从 Notebook 生成考核题", chapter.chapter_number)
+
+            # 兜底：若文档未生成任何题目且本章已有 notebook，则从 notebook 生成
+            if not questions_data and chapter.notebook_path:
+                nb_path = self.base_dir / chapter.notebook_path
+                if nb_path.exists():
+                    questions_data = generate_questions_from_notebook(
+                        nb_path,
+                        chapter.chapter_number,
+                        chapter.title,
+                    )
+
             if not questions_data:
                 logger.warning(
-                    "生成考核题失败：未生成任何题目（章节 %s）。可能原因：OPENAI_API_KEY 未设置、pdfplumber 未安装、文档为扫描版/无有效文本、或 LLM 调用失败。请检查后端日志与环境配置。",
+                    "生成考核题失败：未生成任何题目（章节 %s）。可能原因：OPENAI_API_KEY 未设置、文档/Notebook 无有效文本、或 LLM 调用失败。请检查后端日志与环境配置。",
                     chapter.chapter_number,
                 )
             for idx, q in enumerate(questions_data):
