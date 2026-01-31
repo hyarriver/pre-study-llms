@@ -18,6 +18,7 @@ class Chapter(Base):
     notebook_path = Column(String(500))
     readme_path = Column(String(500))
     pdf_path = Column(String(500))
+    docx_path = Column(String(500))  # PDF 转换得到的 Word 文档路径（可选）
     source_type = Column(String(20), default="official", nullable=False)  # official | user_submitted
     submission_id = Column(Integer, nullable=True)  # 关联 MaterialSubmission.id，便于追溯
     created_at = Column(DateTime, default=datetime.utcnow)

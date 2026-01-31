@@ -35,13 +35,18 @@ def extract_pdf_text(pdf_path: Path) -> str:
 
 
 def extract_docx_text(docx_path: Path) -> str:
-    """从 DOCX 提取文本"""
+    """从 DOCX 提取文本（段落 + 表格单元格）"""
     if not docx_path.exists():
         return ""
     try:
         from docx import Document
         doc = Document(docx_path)
         parts = [p.text for p in doc.paragraphs if p.text.strip()]
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                if row_text:
+                    parts.append(" ".join(row_text))
         return "\n\n".join(parts)
     except ImportError:
         logger.warning("python-docx 未安装，无法提取 DOCX 文本")
@@ -51,10 +56,42 @@ def extract_docx_text(docx_path: Path) -> str:
         return ""
 
 
-def extract_document_text(doc_path: Path) -> str:
-    """根据扩展名从 PDF 或 DOCX 提取文本"""
+# 当 PDF 提取文本少于该字符数时尝试 OCR 增强
+ENHANCED_EXTRACT_THRESHOLD = 200
+
+
+def extract_pdf_text_enhanced(pdf_path: Path) -> str:
+    """从 PDF 提取文本；若 pdfplumber 提取过少则用 Tesseract OCR 增强（扫描件）。"""
+    text = extract_pdf_text(pdf_path)
+    if len(text.strip()) >= ENHANCED_EXTRACT_THRESHOLD:
+        return text
+    try:
+        from pdf2image import convert_from_path
+        import pytesseract
+    except ImportError:
+        return text
+    try:
+        pages = convert_from_path(str(pdf_path), dpi=150)
+        parts = []
+        for img in pages:
+            t = pytesseract.image_to_string(img, lang="chi_sim+eng")
+            if (t or "").strip():
+                parts.append(t.strip())
+        if parts:
+            enhanced = "\n\n".join(parts)
+            logger.info("PDF 经 OCR 增强提取，字符数 %s -> %s", len(text), len(enhanced))
+            return enhanced
+    except Exception as e:
+        logger.warning("OCR 增强提取失败: %s", e)
+    return text
+
+
+def extract_document_text(doc_path: Path, use_enhanced: bool = False) -> str:
+    """根据扩展名从 PDF 或 DOCX 提取文本。use_enhanced=True 时对 PDF 做 OCR 回退。"""
     ext = doc_path.suffix.lower()
     if ext == ".pdf":
+        if use_enhanced:
+            return extract_pdf_text_enhanced(doc_path)
         return extract_pdf_text(doc_path)
     if ext in (".docx", ".doc"):
         return extract_docx_text(doc_path)
@@ -83,12 +120,12 @@ def _call_llm(material: str, chapter_number: int, title: str) -> List[dict]:
 要求：
 1. 只输出一个 JSON 数组，不要其他说明。
 2. 每题格式：
-   - type: "single_choice" 或 "true_false"
-   - content: 题干（字符串）
-   - options: 选项列表。单选题为 [{"key":"A","value":"选项A"}, ...] 至少4项；判断题为 [{"key":"true","value":"正确"},{"key":"false","value":"错误"}]
-   - answer: 正确答案的 key，如 "B" 或 "true"
+   - type: "single_choice" | "true_false" | "fill_blank" | "short_answer"
+   - content: 题干（字符串）。填空题中空位用 _____ 表示；多空时答案按空顺序用 | 分隔。
+   - options: 单选题/判断题必填：[{"key":"A","value":"选项A"}, ...] 至少4项；判断题为 [{"key":"true","value":"正确"},{"key":"false","value":"错误"}]。填空题和简答题可为 null。
+   - answer: 正确答案。单选题/判断题为 key（如 "B"/"true"）；填空题为标准答案，多空用 | 分隔；简答题为参考答案或关键词（逗号分隔）。
    - explanation: 简短解析（字符串）
-3. 至少生成 4 道单选题、2 道判断题；题目需基于材料内容，不要编造。
+3. 至少生成 4 道单选题、2 道判断题；可额外生成 1–2 道填空题或简答题。题目需基于材料内容，不要编造。
 4. 输出必须是合法 JSON，且仅为数组。"""
 
     user = f"章节 {chapter_number}：{title}\n\n材料：\n{material}"
@@ -121,18 +158,24 @@ def _call_llm(material: str, chapter_number: int, title: str) -> List[dict]:
         if not isinstance(q, dict):
             continue
         t = (q.get("type") or "single_choice").strip().lower()
-        if t not in ("single_choice", "true_false"):
+        if t not in ("single_choice", "true_false", "fill_blank", "short_answer"):
             t = "single_choice"
         content = (q.get("content") or "").strip()
         if not content:
             continue
         options = q.get("options")
-        if not options or not isinstance(options, list):
-            if t == "true_false":
+        if t == "true_false":
+            if not options or not isinstance(options, list):
                 options = [{"key": "true", "value": "正确"}, {"key": "false", "value": "错误"}]
-            else:
+        elif t in ("single_choice", "multi_choice"):
+            if not options or not isinstance(options, list):
                 continue
+        else:
+            # fill_blank / short_answer: options 可为 null
+            options = options if isinstance(options, list) else None
         answer = (q.get("answer") or "").strip()
+        if not answer and t not in ("fill_blank", "short_answer"):
+            continue
         explanation = (q.get("explanation") or "").strip()
         result.append({
             "type": t,
@@ -148,9 +191,10 @@ def generate_questions_from_document(
     doc_path: Path,
     chapter_number: int,
     title: str,
+    use_enhanced: bool = True,
 ) -> List[dict]:
-    """从文档生成考核题"""
-    material = extract_document_text(doc_path)
+    """从文档生成考核题。use_enhanced=True 时对 PDF 使用 OCR 回退（扫描件）。"""
+    material = extract_document_text(doc_path, use_enhanced=use_enhanced)
     if not material.strip():
         logger.warning(
             "文档无有效文本内容，无法生成考核题。可能原因：PDF 为扫描件/图片、pdfplumber 未安装、或文件损坏。请确认已安装 pdfplumber 且文档为可选中文本的 PDF。"

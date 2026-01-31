@@ -14,6 +14,7 @@ class ChapterBase(BaseModel):
     notebook_path: Optional[str] = None
     readme_path: Optional[str] = None
     pdf_path: Optional[str] = None
+    docx_path: Optional[str] = None
 
 
 class ChapterCreate(ChapterBase):
@@ -29,6 +30,7 @@ class ChapterUpdate(BaseModel):
     notebook_path: Optional[str] = None
     readme_path: Optional[str] = None
     pdf_path: Optional[str] = None
+    docx_path: Optional[str] = None
 
 
 class ChapterReorderRequest(BaseModel):

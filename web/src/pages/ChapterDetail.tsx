@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
@@ -15,16 +16,20 @@ import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import NotebookViewer from '@/components/NotebookViewer'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
-import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink, FileDown } from 'lucide-react'
 import ExamPanel from '@/components/ExamPanel'
 import { useExamStatus, useChapterExamInfo } from '@/hooks/useExam'
 import { notebookApi } from '@/api/notebook'
+import { chaptersApi } from '@/api/chapters'
 
 export default function ChapterDetail() {
   const { id } = useParams<{ id: string }>()
   const chapterId = id ? parseInt(id) : 0
   const [activeTab, setActiveTab] = useState('notebook')
-  const isAuth = !!useAuthStore((s) => s.user)
+  const queryClient = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const isAuth = !!user
+  const isAdmin = user?.role === 'admin'
   const contentRef = useRef<HTMLDivElement>(null)
   const [readProgress, setReadProgress] = useState(0)  // 基于滚动的阅读进度
   
@@ -191,6 +196,30 @@ export default function ChapterDetail() {
       setTimeout(() => URL.revokeObjectURL(url), 60000)
     } catch (e) {
       console.error('打开文档失败:', e)
+    }
+  }
+
+  const hasDocx = !!chapter.docx_path
+  const convertToDocxMutation = useMutation({
+    mutationFn: () => chaptersApi.convertToDocx(chapter.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapter', chapterId] })
+    },
+  })
+  const handleConvertToDocx = () => {
+    convertToDocxMutation.mutate()
+  }
+  const handleDocxDownload = async () => {
+    try {
+      const { data } = await notebookApi.getDocx(chapter.id)
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = chapter.docx_path?.split('/').pop() || `chapter-${chapter.chapter_number}.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('下载 Word 失败:', e)
     }
   }
 
@@ -408,6 +437,22 @@ export default function ChapterDetail() {
                   <Download className="h-4 w-4" />
                   {isDocx ? '下载文档' : '下载 PDF'}
                 </Button>
+                {hasDocx && (
+                  <Button variant="secondary" onClick={handleDocxDownload} className="gap-2">
+                    <FileDown className="h-4 w-4" />
+                    下载 Word
+                  </Button>
+                )}
+                {!hasDocx && chapter.pdf_path?.toLowerCase().endsWith('.pdf') && isAdmin && (
+                  <Button
+                    variant="outline"
+                    onClick={handleConvertToDocx}
+                    disabled={convertToDocxMutation.isPending}
+                    className="gap-2"
+                  >
+                    {convertToDocxMutation.isPending ? '转换中...' : '转为 Word'}
+                  </Button>
+                )}
                 <Button variant="outline" onClick={handlePdfOpen} className="gap-2">
                   <ExternalLink className="h-4 w-4" />
                   在新窗口打开

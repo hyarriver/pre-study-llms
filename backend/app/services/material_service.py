@@ -62,8 +62,9 @@ class MaterialService:
         description: Optional[str],
         file_path: Path,
         file_ext: str,
+        generate_docx: bool = False,
     ) -> MaterialSubmission:
-        """用户提交材料：创建记录并保存文件"""
+        """用户提交材料：创建记录并保存文件。仅 PDF 时 generate_docx 有效，审核通过后会同时生成 DOCX。"""
         file_type = FILE_TYPE_MAP.get(file_ext, file_ext.lstrip("."))
         self._ensure_upload_dirs()
 
@@ -74,6 +75,7 @@ class MaterialService:
             description=description or "",
             file_path="",  # 稍后更新
             file_type=file_type,
+            generate_docx=1 if generate_docx else 0,
             status="pending",
         )
         self.db.add(submission)
@@ -222,6 +224,16 @@ class MaterialService:
         # 生成考核题
         self._generate_exam_questions(chapter, submission)
 
+        # 若用户勾选「同时生成 Word」且为 PDF，则转换并写入 docx_path
+        if submission.file_type == "pdf" and getattr(submission, "generate_docx", 0):
+            try:
+                from app.services.pdf_to_docx_service import convert_pdf_to_docx
+                out_docx = chapter_dir / "document.docx"
+                convert_pdf_to_docx(Path(dest_file), Path(out_docx))
+                chapter.docx_path = f"documents/chapter_user_{next_num}/document.docx"
+            except Exception as e:
+                logger.warning("审核通过时生成 DOCX 失败: %s", e)
+
         submission.status = "approved"
         submission.chapter_id = chapter.id
         submission.reviewed_by = admin_id
@@ -341,14 +353,25 @@ class MaterialService:
         self.db.commit()
 
     def _generate_exam_questions(self, chapter: Chapter, submission: Optional[MaterialSubmission]):
-        """从文档提取文本并生成考核题。submission 可为 None（补生成时）。"""
+        """从文档提取文本并生成考核题。优先使用已生成的 DOCX，否则用 PDF（含 OCR 增强）。"""
         try:
             from app.services.exam_generator import generate_questions_from_document
-            doc_path = self.base_dir / chapter.pdf_path
+            # 优先使用已转换的 DOCX（与转换后文档一致），否则用 PDF
+            doc_path = None
+            if getattr(chapter, "docx_path", None):
+                candidate = self.base_dir / chapter.docx_path
+                if candidate.exists():
+                    doc_path = candidate
+            if not doc_path and chapter.pdf_path:
+                doc_path = self.base_dir / chapter.pdf_path
+            if not doc_path or not doc_path.exists():
+                logger.warning("章节 %s 无文档路径或文件不存在，跳过考核题生成", chapter.chapter_number)
+                return
             questions_data = generate_questions_from_document(
                 doc_path,
                 chapter.chapter_number,
                 chapter.title,
+                use_enhanced=True,
             )
             if not questions_data:
                 logger.warning(

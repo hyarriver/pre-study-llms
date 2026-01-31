@@ -26,6 +26,7 @@ export interface Chapter {
   notebook_path: string | null
   readme_path: string | null
   pdf_path: string | null
+  docx_path?: string | null  // PDF 转换得到的 Word 文档路径
   source_type?: string  // official | user_submitted
   completion_percentage: number
   completed: boolean
@@ -151,7 +152,7 @@ export interface QuestionOption {
 export interface Question {
   id: number
   chapter_id: number
-  question_type: 'single_choice' | 'multi_choice' | 'true_false'
+  question_type: 'single_choice' | 'multi_choice' | 'true_false' | 'fill_blank' | 'short_answer'
   content: string
   options: QuestionOption[] | null
   score: number

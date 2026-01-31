@@ -154,19 +154,33 @@ class ExamService:
         """检查答案是否正确"""
         if not user_answer:
             return False
-        
-        # 统一转为小写并去除空格
-        user_answer = user_answer.strip().lower()
-        correct_answer = correct_answer.strip().lower()
-        
+
+        user_answer = user_answer.strip()
+        correct_answer = correct_answer.strip()
+        if not correct_answer:
+            return False
+
         if question_type == "multi_choice":
-            # 多选题：排序后比较
-            user_set = set(user_answer.split(","))
-            correct_set = set(correct_answer.split(","))
+            user_set = set(u.strip().lower() for u in user_answer.split(","))
+            correct_set = set(c.strip().lower() for c in correct_answer.split(","))
             return user_set == correct_set
-        else:
-            # 单选题或判断题：直接比较
-            return user_answer == correct_answer
+        if question_type == "fill_blank":
+            # 多空用 | 或逗号分隔，逐空比较（忽略大小写与首尾空格）
+            sep = "|" if "|" in correct_answer else ","
+            user_parts = [u.strip().lower() for u in user_answer.replace("|", ",").split(",")]
+            correct_parts = [c.strip().lower() for c in correct_answer.split(sep)]
+            if len(user_parts) != len(correct_parts):
+                return False
+            return all(u == c for u, c in zip(user_parts, correct_parts))
+        if question_type == "short_answer":
+            # 简答：参考答案为关键词（逗号分隔），用户答案包含任一关键词即算对，或完全匹配
+            user_lower = user_answer.lower()
+            keywords = [k.strip().lower() for k in correct_answer.split(",") if k.strip()]
+            if not keywords:
+                return user_lower == correct_answer.lower()
+            return any(kw in user_lower for kw in keywords) or user_lower == correct_answer.lower()
+        # single_choice / true_false
+        return user_answer.strip().lower() == correct_answer.strip().lower()
     
     def _update_progress_exam_score(
         self, chapter_id: int, user_id: str, percentage: float

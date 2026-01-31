@@ -32,10 +32,16 @@ export default function QuestionCard({
         return '多选题'
       case 'true_false':
         return '判断题'
+      case 'fill_blank':
+        return '填空题'
+      case 'short_answer':
+        return '简答题'
       default:
         return '选择题'
     }
   }
+
+  const isChoiceType = ['single_choice', 'multi_choice', 'true_false'].includes(question.question_type)
 
   const handleOptionClick = (optionKey: string) => {
     if (disabled) return
@@ -126,9 +132,9 @@ export default function QuestionCard({
           </div>
         </div>
 
-        {/* 选项列表 */}
+        {/* 选项列表（选择题/判断题）或输入框（填空/简答） */}
         <div className="space-y-2 ml-9 sm:ml-11">
-          {question.options?.map((option) => (
+          {isChoiceType && question.options?.map((option) => (
             <div
               key={option.key}
               onClick={() => handleOptionClick(option.key)}
@@ -153,6 +159,23 @@ export default function QuestionCard({
               </div>
             </div>
           ))}
+          {(question.question_type === 'fill_blank' || question.question_type === 'short_answer') && (
+            <div className="space-y-2">
+              <textarea
+                className="w-full min-h-[80px] sm:min-h-[100px] p-3 rounded-lg border-2 border-input bg-background text-sm sm:text-base resize-y focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={question.question_type === 'fill_blank' ? '请填写答案（多空用 | 或逗号分隔）' : '请简要作答'}
+                value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
+                onChange={(e) => !disabled && onAnswerChange(question.id, e.target.value)}
+                disabled={disabled}
+                rows={question.question_type === 'short_answer' ? 3 : 2}
+              />
+              {showResult && answerDetail && (
+                <p className="text-xs text-muted-foreground">
+                  你的答案：{answerDetail.user_answer || '（未填）'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 答案解析（仅在显示结果时） */}

@@ -17,6 +17,7 @@ class MaterialSubmission(Base):
     description = Column(Text)
     file_path = Column(String(500), nullable=False)
     file_type = Column(String(20), nullable=False)  # pdf | docx
+    generate_docx = Column(Integer, default=0, nullable=False)  # 1=上传时同时生成 Word
     status = Column(String(20), default="pending", nullable=False)  # pending | approved | rejected
     reject_reason = Column(Text)
     reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)

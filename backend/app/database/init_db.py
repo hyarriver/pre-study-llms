@@ -32,8 +32,10 @@ def init_db():
     # 为 chapters 表添加 source_type、submission_id（若不存在）
     _add_column_if_not_exists("chapters", "source_type", "VARCHAR(20) DEFAULT 'official'")
     _add_column_if_not_exists("chapters", "submission_id", "INTEGER")
+    _add_column_if_not_exists("chapters", "docx_path", "VARCHAR(500)")
     # 为 material_submissions 表添加 deleted_by_user_at（若不存在）
     _add_column_if_not_exists("material_submissions", "deleted_by_user_at", "DATETIME")
+    _add_column_if_not_exists("material_submissions", "generate_docx", "INTEGER DEFAULT 0")
 
     # 初始化章节数据：优先从 documents/chapters_config.json 同步
     db = SessionLocal()

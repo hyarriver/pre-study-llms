@@ -33,6 +33,7 @@ class ChapterService:
                 notebook_path=chapter.notebook_path,
                 readme_path=chapter.readme_path,
                 pdf_path=chapter.pdf_path,
+                docx_path=getattr(chapter, "docx_path", None),
                 source_type=getattr(chapter, "source_type", None) or "official",
                 created_at=chapter.created_at,
                 updated_at=chapter.updated_at,
@@ -61,6 +62,7 @@ class ChapterService:
             notebook_path=chapter.notebook_path,
             readme_path=chapter.readme_path,
             pdf_path=chapter.pdf_path,
+            docx_path=getattr(chapter, "docx_path", None),
             source_type=getattr(chapter, "source_type", None) or "official",
             created_at=chapter.created_at,
             updated_at=chapter.updated_at,
@@ -85,6 +87,8 @@ class ChapterService:
             chapter.readme_path = data.readme_path
         if data.pdf_path is not None:
             chapter.pdf_path = data.pdf_path
+        if data.docx_path is not None:
+            chapter.docx_path = data.docx_path
         self.db.commit()
         self.db.refresh(chapter)
         return self.get_by_id(chapter_id, user_id=None)

@@ -32,10 +32,11 @@ async def submit_material(
     title: str = Form(...),
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
+    generate_docx: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user),
     service: MaterialService = Depends(get_material_service),
 ):
-    """用户上传学习材料（PDF 或 DOCX）"""
+    """用户上传学习材料（PDF 或 DOCX）。仅 PDF 时可勾选「同时生成 Word」。"""
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"仅支持 PDF 和 DOCX 格式")
@@ -51,6 +52,10 @@ async def submit_material(
         tmp.write(content)
         tmp_path = Path(tmp.name)
 
+    want_docx = str(generate_docx or "").strip().lower() in ("1", "true", "yes")
+    if want_docx and ext != ".pdf":
+        want_docx = False
+
     try:
         submission = service.submit(
             user_id=current_user.id,
@@ -58,6 +63,7 @@ async def submit_material(
             description=description.strip() if description else None,
             file_path=tmp_path,
             file_ext=ext,
+            generate_docx=want_docx,
         )
         return submission
     except OSError as e:

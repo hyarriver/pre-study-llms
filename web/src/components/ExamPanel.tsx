@@ -13,8 +13,10 @@ import {
   Loader2,
   Send,
   History,
+  BookOpen,
 } from 'lucide-react'
 import { useQuestions, useSubmitExam, useExamStatus, useExamRecords } from '@/hooks/useExam'
+import { getExamNotebook } from '@/api/exam'
 import { useAuthStore } from '@/store/authStore'
 import QuestionCard from './QuestionCard'
 import ExamResult from './ExamResult'
@@ -34,6 +36,7 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   const [answers, setAnswers] = useState<Record<number, string | string[]>>({})
   const [examResult, setExamResult] = useState<ExamResultType | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const [notebookDownloading, setNotebookDownloading] = useState(false)
 
   const { data: questions, isLoading: questionsLoading, isError: questionsError, refetch: refetchQuestions } = useQuestions(chapterId)
   const { data: examStatus, isLoading: statusLoading, isError: statusError, refetch: refetchStatus } = useExamStatus(chapterId)
@@ -73,6 +76,27 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
   const answeredCount = Object.keys(answers).length
   const totalQuestions = questions?.length || 0
   const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0
+
+  const handleDownloadExamNotebook = async () => {
+    setNotebookDownloading(true)
+    try {
+      const baseUrl =
+        typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL
+          ? (import.meta as any).env.VITE_API_BASE_URL
+          : `${window.location.origin}/api/v1`
+      const blob = await getExamNotebook(chapterId, baseUrl)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `chapter-${chapterId}-exam.ipynb`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('下载考核 Notebook 失败:', e)
+    } finally {
+      setNotebookDownloading(false)
+    }
+  }
 
   // 未登录提示
   if (!isAuth) {
@@ -302,17 +326,33 @@ export default function ExamPanel({ chapterId }: ExamPanelProps) {
             <h4 className="text-sm sm:text-base font-medium mb-2">考试说明</h4>
             <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 leading-relaxed">
               <li>• 本次考核共 {examStatus?.question_count || 0} 道题目</li>
-              <li>• 题型包括：单选题、多选题、判断题</li>
+              <li>• 题型包括：单选题、多选题、判断题、填空题、简答题</li>
               <li>• 可多次参加考试，系统记录最高成绩</li>
-              <li>• 考核成绩占学习进度的 50%</li>
+              <li>• 考核成绩占学习进度的 50%；也可下载「在 Jupyter 中做题」模板，成绩同步</li>
             </ul>
           </div>
 
-          {/* 开始考试按钮 */}
-          <Button onClick={handleStartExam} size="lg" className="w-full min-h-[48px] text-base touch-manipulation">
-            <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            开始考试
-          </Button>
+          {/* 开始考试 / 在 Jupyter 中做题 */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleStartExam} size="lg" className="flex-1 min-h-[48px] text-base touch-manipulation">
+              <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              开始考试
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleDownloadExamNotebook}
+              disabled={notebookDownloading}
+              className="flex-1 min-h-[48px] text-base touch-manipulation"
+            >
+              {notebookDownloading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <BookOpen className="h-4 w-4 mr-2" />
+              )}
+              在 Jupyter 中做题
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

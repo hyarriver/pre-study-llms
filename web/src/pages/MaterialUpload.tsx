@@ -16,6 +16,7 @@ export default function MaterialUpload() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [generateDocx, setGenerateDocx] = useState(false)
   const [error, setError] = useState('')
 
   const { data: submissions = [], isLoading } = useQuery({
@@ -38,6 +39,7 @@ export default function MaterialUpload() {
       formData.append('title', title.trim())
       formData.append('description', description.trim())
       formData.append('file', file)
+      if (generateDocx) formData.append('generate_docx', 'true')
       return materialsApi.submit(formData)
     },
     onSuccess: () => {
@@ -46,6 +48,7 @@ export default function MaterialUpload() {
       setTitle('')
       setDescription('')
       setFile(null)
+      setGenerateDocx(false)
       setError('')
     },
     onError: (err: unknown) => {
@@ -127,9 +130,27 @@ export default function MaterialUpload() {
               <Input
                 type="file"
                 accept=".pdf,.docx"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null
+                  setFile(f)
+                  if (f && !f.name.toLowerCase().endsWith('.pdf')) setGenerateDocx(false)
+                }}
               />
             </div>
+            {file?.name.toLowerCase().endsWith('.pdf') && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="generate-docx"
+                  checked={generateDocx}
+                  onChange={(e) => setGenerateDocx(e.target.checked)}
+                  className="rounded border-input"
+                />
+                <label htmlFor="generate-docx" className="text-sm text-muted-foreground">
+                  同时生成 Word 文档（审核通过后自动转换）
+                </label>
+              </div>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={submitMutation.isPending}>
               {submitMutation.isPending ? '提交中...' : '提交审核'}

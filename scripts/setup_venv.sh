@@ -47,6 +47,9 @@ echo "安装项目依赖..."
 pip install -r requirements.txt
 
 echo ""
+echo -e "${YELLOW}提示：PDF 转 Word 与扫描件 OCR 需系统安装 Tesseract 与 Poppler。${NC}"
+echo "  可运行: ./scripts/install_deps.sh 安装系统依赖（或已创建 venv 时仅需再装系统包）。"
+echo ""
 echo -e "${GREEN}✅ 虚拟环境设置完成！${NC}"
 echo ""
 echo "虚拟环境位置: $VENV_DIR"

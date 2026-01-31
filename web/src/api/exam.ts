@@ -52,3 +52,18 @@ export const getExamStatus = async (chapterId: number): Promise<ChapterExamStatu
   const response = await api.get(`/exam/${chapterId}/status`)
   return response.data
 }
+
+/**
+ * 下载本章考核的 Jupyter Notebook 模板（在 Jupyter 中做题，成绩同步到平台）
+ */
+export const getExamNotebook = async (
+  chapterId: number,
+  baseUrl?: string
+): Promise<Blob> => {
+  const params = baseUrl ? { base_url: baseUrl } : undefined
+  const response = await api.get(`/exam/${chapterId}/exam-notebook`, {
+    params,
+    responseType: 'blob',
+  })
+  return response.data
+}

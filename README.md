@@ -75,11 +75,15 @@ cd pre-study-llms
 cd web
 npm install
 
-# 安装后端依赖
-cd ../backend
-pip install -r requirements.txt
+# 安装后端依赖（含 Tesseract OCR、Poppler，用于 PDF 转 Word 与扫描件识别）
+# Linux/macOS：自动安装系统依赖 + Python 包
+./scripts/install_deps.sh
+# 或仅安装 Python 包：
+# cd backend && pip install -r requirements.txt
+# Windows PowerShell：.\scripts\install_deps.ps1
 
-# 启动后端
+# 启动后端（需在 backend 目录下）
+cd backend
 uvicorn app.main:app --reload --port 8000
 
 # 启动前端（新终端）

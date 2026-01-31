@@ -12,6 +12,7 @@ export interface ChapterUpdateBody {
   notebook_path?: string | null
   readme_path?: string | null
   pdf_path?: string | null
+  docx_path?: string | null
 }
 
 export const chaptersApi = {
@@ -32,4 +33,7 @@ export const chaptersApi = {
   /** 管理员：补生成 README、Notebook、考核题（仅用户提交章节） */
   regenerateContent: (chapterId: number) =>
     api.post<{ message: string }>(`/chapters/${chapterId}/regenerate-content`),
+  /** 管理员：将章节 PDF 转为 Word（.docx） */
+  convertToDocx: (chapterId: number) =>
+    api.post<{ docx_path: string; already_exists?: boolean }>(`/chapters/${chapterId}/convert-to-docx`),
 }
