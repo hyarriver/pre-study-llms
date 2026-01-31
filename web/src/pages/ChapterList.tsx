@@ -2,15 +2,55 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useChapters } from '@/hooks/useChapters'
 import { CheckCircle2, Circle, BookOpen } from 'lucide-react'
 import StudyStatisticsPanel from '@/components/StudyStatisticsPanel'
+
+function ChapterListSkeleton() {
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <StudyStatisticsPanel />
+      <div className="grid gap-3 sm:gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader className="pb-3 sm:pb-6">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3 sm:space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-8" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
+                </div>
+                <Skeleton className="h-10 w-24 rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function ChapterList() {
   const { data: chapters = [], isLoading, error } = useChapters()
 
   if (isLoading) {
-    return <div className="text-center py-12">加载中...</div>
+    return <ChapterListSkeleton />
   }
 
   if (error) {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { useAuthStore } from '@/store/authStore'
 import type { MaterialSubmissionWithUser } from '@/types'
@@ -104,7 +105,24 @@ export default function AdminMaterialReview() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground text-sm">加载中...</p>
+            <ul className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <li key={i} className="p-4 rounded-lg border bg-muted/30 space-y-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-3 w-64" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-8 w-16 rounded-md" />
+                      <Skeleton className="h-8 w-14 rounded-md" />
+                      <Skeleton className="h-8 w-14 rounded-md" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           ) : pending.length === 0 ? (
             <p className="text-muted-foreground text-sm">暂无待审核项</p>
           ) : (

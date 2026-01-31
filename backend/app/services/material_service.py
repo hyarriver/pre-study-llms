@@ -173,6 +173,17 @@ class MaterialService:
         if readme_rel:
             chapter.readme_path = readme_rel
 
+        # 从文档生成 Notebook 并写入章节目录
+        notebook_rel = self._generate_notebook(
+            chapter_dir=chapter_dir,
+            doc_path=dest_file,
+            title=submission.title,
+            description=submission.description or "",
+            next_num=next_num,
+        )
+        if notebook_rel:
+            chapter.notebook_path = notebook_rel
+
         # 生成考核题
         self._generate_exam_questions(chapter, submission)
 
@@ -226,6 +237,31 @@ class MaterialService:
             return f"documents/chapter_user_{next_num}/README.md"
         except Exception as e:
             logger.warning("生成或写入 README 失败: %s", e)
+            return None
+
+    def _generate_notebook(
+        self,
+        chapter_dir: Path,
+        doc_path: Path,
+        title: str,
+        description: str,
+        next_num: int,
+    ) -> Optional[str]:
+        """从文档生成 Notebook 并写入章节目录，返回相对路径或 None。"""
+        try:
+            from app.services.exam_generator import (
+                generate_notebook_from_document,
+                write_notebook_to_file,
+            )
+            cells_content = generate_notebook_from_document(doc_path, title, description)
+            if not cells_content:
+                return None
+            output_path = chapter_dir / "content.ipynb"
+            if not write_notebook_to_file(cells_content, output_path):
+                return None
+            return f"documents/chapter_user_{next_num}/content.ipynb"
+        except Exception as e:
+            logger.warning("生成或写入 Notebook 失败: %s", e)
             return None
 
     def _generate_exam_questions(self, chapter: Chapter, submission: MaterialSubmission):

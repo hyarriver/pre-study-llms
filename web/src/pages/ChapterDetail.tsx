@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useChapter } from '@/hooks/useChapters'
 import { useNotebookContent, useReadme } from '@/hooks/useNotebook'
 import { useUpdateProgress } from '@/hooks/useProgress'
@@ -124,7 +125,36 @@ export default function ChapterDetail() {
   }, [chapter?.id, validTabs.join(','), activeTab])
 
   if (chapterLoading) {
-    return <div className="text-center py-12">加载中...</div>
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+          <Skeleton className="h-9 w-20 rounded-md" />
+          <div className="flex-1 min-w-0 space-y-2">
+            <Skeleton className="h-8 w-full max-w-md" />
+            <Skeleton className="h-4 w-full max-w-xl" />
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <Skeleton className="h-3 w-full rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full max-w-md rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </div>
+      </div>
+    )
   }
 
   if (!chapter) {
@@ -302,7 +332,14 @@ export default function ChapterDetail() {
             </CardHeader>
             <CardContent>
               {notebookLoading ? (
-                <div className="text-center py-8">加载 Notebook 内容中...</div>
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-full rounded" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-32 w-full rounded" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-24 w-full rounded" />
+                </div>
               ) : notebookContent ? (
                 <NotebookViewer 
                   cells={notebookContent.cells} 
@@ -326,7 +363,14 @@ export default function ChapterDetail() {
             </CardHeader>
             <CardContent>
               {readmeLoading ? (
-                <div className="text-center py-8">加载 README 内容中...</div>
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-full rounded" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-32 w-full rounded" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-24 w-full rounded" />
+                </div>
               ) : readmeContent ? (
                 <div className="prose prose-invert max-w-none break-words overflow-wrap-anywhere">
                   <ReactMarkdown

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { useAuthStore } from '@/store/authStore'
 import { getApiErrorMessage } from '@/lib/utils'
@@ -140,7 +141,17 @@ export default function MaterialUpload() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground text-sm">加载中...</p>
+            <ul className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <li key={i} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded" />
+                </li>
+              ))}
+            </ul>
           ) : submissions.length === 0 ? (
             <p className="text-muted-foreground text-sm">暂无提交记录</p>
           ) : (

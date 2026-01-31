@@ -219,3 +219,98 @@ def generate_readme_from_document(
     except Exception as e:
         logger.warning("LLM 生成 README 失败: %s", e)
         return None
+
+
+MAX_NOTEBOOK_MATERIAL_CHARS = 14000
+
+
+def generate_notebook_from_document(
+    doc_path: Path,
+    title: str,
+    description: str = "",
+) -> Optional[List[str]]:
+    """
+    从文档提取文本并调用 LLM 生成 Jupyter Notebook 的 markdown cells。
+    返回 markdown 单元格内容列表，失败返回 None。
+    """
+    material = extract_document_text(doc_path)
+    if not material.strip():
+        logger.warning("文档无有效文本内容，跳过 Notebook 生成")
+        return None
+    if len(material) > MAX_NOTEBOOK_MATERIAL_CHARS:
+        material = material[:MAX_NOTEBOOK_MATERIAL_CHARS] + "\n\n[内容已截断]"
+
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("openai 未安装，跳过 Notebook 生成")
+        return None
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        logger.warning("未设置 OPENAI_API_KEY，跳过 Notebook 生成")
+        return None
+
+    client = OpenAI(api_key=api_key)
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    if base_url:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+
+    system = """你是一个学习资料助手。根据用户提供的「章节文档」文本，生成 Jupyter Notebook 的 markdown cells。
+要求：
+1. 按文档结构分节，每个小节或段落对应一个 markdown 单元格。
+2. 第一个单元格必须包含标题（# 格式）和简短导读。
+3. 后续单元格按文档逻辑分段，使用合适的 markdown 格式（标题、列表、代码块等）。
+4. 输出纯 JSON 数组，每个元素为单个 markdown 单元格的字符串内容，如：["# 标题\\n\\n导读...", "## 第一节\\n\\n内容...", ...]
+5. 不要输出代码块包裹，直接输出 JSON 数组。
+6. 语言与文档一致（中文文档用中文，英文用英文）。"""
+
+    user = f"章节标题：{title}\n"
+    if description:
+        user += f"章节描述：{description}\n\n"
+    user += f"文档内容：\n{material}"
+
+    try:
+        resp = client.chat.completions.create(
+            model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=0.3,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        if not raw:
+            return None
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        m = re.search(r"\[[\s\S]*\]", raw)
+        if not m:
+            return None
+        cells_data = json.loads(m.group(0))
+        if not isinstance(cells_data, list):
+            return None
+        result = []
+        for item in cells_data:
+            if isinstance(item, str) and item.strip():
+                result.append(item.strip())
+            elif isinstance(item, (int, float)):
+                result.append(str(item))
+        return result if result else None
+    except Exception as e:
+        logger.warning("LLM 生成 Notebook 失败: %s", e)
+        return None
+
+
+def write_notebook_to_file(cells_content: List[str], output_path: Path) -> bool:
+    """将 markdown cells 写入 .ipynb 文件。"""
+    try:
+        import nbformat as nbf
+        nb = nbf.v4.new_notebook()
+        for content in cells_content:
+            nb.cells.append(nbf.v4.new_markdown_cell(content))
+        with open(output_path, "w", encoding="utf-8") as f:
+            nbf.write(nb, f)
+        return True
+    except Exception as e:
+        logger.warning("写入 Notebook 文件失败: %s", e)
+        return False
