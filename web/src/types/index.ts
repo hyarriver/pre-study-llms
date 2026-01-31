@@ -199,6 +199,13 @@ export interface ExamRecord {
   created_at: string
 }
 
+// 章节考核信息（免鉴权，仅是否有题与题数）
+export interface ChapterExamInfo {
+  chapter_id: number
+  has_questions: boolean
+  question_count: number
+}
+
 // 章节考试状态
 export interface ChapterExamStatus {
   chapter_id: number

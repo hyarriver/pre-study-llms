@@ -6,10 +6,11 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 MAX_MATERIAL_CHARS = 14000
+MAX_README_MATERIAL_CHARS = 12000
 
 
 def extract_pdf_text(pdf_path: Path) -> str:
@@ -151,8 +152,70 @@ def generate_questions_from_document(
     """从文档生成考核题"""
     material = extract_document_text(doc_path)
     if not material.strip():
-        logger.warning("文档无有效文本内容")
+        logger.warning(
+            "文档无有效文本内容，无法生成考核题。可能原因：PDF 为扫描件/图片、pdfplumber 未安装、或文件损坏。请确认已安装 pdfplumber 且文档为可选中文本的 PDF。"
+        )
         return []
     if len(material) > MAX_MATERIAL_CHARS:
         material = material[:MAX_MATERIAL_CHARS] + "\n\n[内容已截断]"
     return _call_llm(material, chapter_number, title)
+
+
+def generate_readme_from_document(
+    doc_path: Path,
+    title: str,
+    description: str = "",
+) -> Optional[str]:
+    """从文档提取文本并调用 LLM 生成 README 内容（Markdown）。失败返回 None。"""
+    material = extract_document_text(doc_path)
+    if not material.strip():
+        logger.warning("文档无有效文本内容，跳过 README 生成")
+        return None
+    if len(material) > MAX_README_MATERIAL_CHARS:
+        material = material[:MAX_README_MATERIAL_CHARS] + "\n\n[内容已截断]"
+
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("openai 未安装，跳过 README 生成")
+        return None
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        logger.warning("未设置 OPENAI_API_KEY，跳过 README 生成")
+        return None
+
+    client = OpenAI(api_key=api_key)
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    if base_url:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+
+    system = """你是一个学习资料助手。根据用户提供的「章节文档」文本，生成一份简短的 README.md。
+要求：
+1. 使用 Markdown 格式，直接输出正文，不要用代码块包裹。
+2. 包含：标题（与章节标题一致）、简短摘要（2–4 句）、学习要点（3–6 条列表）。
+3. 语言与文档一致（中文文档用中文，英文用英文）。
+4. 内容基于文档，不要编造。"""
+
+    user = f"章节标题：{title}\n"
+    if description:
+        user += f"章节描述：{description}\n\n"
+    user += f"文档内容：\n{material}"
+
+    try:
+        resp = client.chat.completions.create(
+            model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=0.3,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        if not raw:
+            return None
+        raw = raw.replace("```markdown", "").replace("```md", "").replace("```", "").strip()
+        return raw
+    except Exception as e:
+        logger.warning("LLM 生成 README 失败: %s", e)
+        return None

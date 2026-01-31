@@ -9,7 +9,8 @@ import {
   getBestRecord,
   getExamStatus,
 } from '@/api/exam'
-import type { ExamSubmission } from '@/types'
+import { chaptersApi } from '@/api/chapters'
+import type { ExamSubmission, ChapterExamInfo } from '@/types'
 
 /**
  * 获取章节试题
@@ -66,12 +67,29 @@ export function useBestRecord(chapterId: number) {
 }
 
 /**
- * 获取章节考试状态
+ * 获取章节考试状态（需登录）
  */
-export function useExamStatus(chapterId: number) {
+export function useExamStatus(chapterId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['examStatus', chapterId],
     queryFn: () => getExamStatus(chapterId),
-    enabled: chapterId > 0,
+    enabled: chapterId > 0 && (options?.enabled !== false),
+  })
+}
+
+/**
+ * 获取章节考核信息（无需登录，仅是否有题与题数）。用于未登录时决定是否显示考核 Tab。
+ */
+export function useChapterExamInfo(
+  chapterId: number,
+  options?: { enabled?: boolean }
+): { data?: ChapterExamInfo } {
+  return useQuery({
+    queryKey: ['chapterExamInfo', chapterId],
+    queryFn: async () => {
+      const res = await chaptersApi.getExamInfo(chapterId)
+      return res.data
+    },
+    enabled: chapterId > 0 && (options?.enabled !== false),
   })
 }

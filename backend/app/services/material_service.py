@@ -162,6 +162,17 @@ class MaterialService:
         self.db.add(chapter)
         self.db.flush()
 
+        # 从文档生成 README 并写入章节目录
+        readme_rel = self._generate_readme(
+            chapter_dir=chapter_dir,
+            doc_path=dest_file,
+            title=submission.title,
+            description=submission.description or "",
+            next_num=next_num,
+        )
+        if readme_rel:
+            chapter.readme_path = readme_rel
+
         # 生成考核题
         self._generate_exam_questions(chapter, submission)
 
@@ -196,6 +207,27 @@ class MaterialService:
 
         self.db.commit()
 
+    def _generate_readme(
+        self,
+        chapter_dir: Path,
+        doc_path: Path,
+        title: str,
+        description: str,
+        next_num: int,
+    ) -> Optional[str]:
+        """从文档生成 README.md 并写入章节目录，返回相对路径或 None。"""
+        try:
+            from app.services.exam_generator import generate_readme_from_document
+            content = generate_readme_from_document(doc_path, title, description)
+            if not content:
+                return None
+            readme_file = chapter_dir / "README.md"
+            readme_file.write_text(content, encoding="utf-8")
+            return f"documents/chapter_user_{next_num}/README.md"
+        except Exception as e:
+            logger.warning("生成或写入 README 失败: %s", e)
+            return None
+
     def _generate_exam_questions(self, chapter: Chapter, submission: MaterialSubmission):
         """从文档提取文本并生成考核题"""
         try:
@@ -206,6 +238,11 @@ class MaterialService:
                 chapter.chapter_number,
                 chapter.title,
             )
+            if not questions_data:
+                logger.warning(
+                    "生成考核题失败：未生成任何题目（章节 %s）。可能原因：OPENAI_API_KEY 未设置、pdfplumber 未安装、文档为扫描版/无有效文本、或 LLM 调用失败。请检查后端日志与环境配置。",
+                    chapter.chapter_number,
+                )
             for idx, q in enumerate(questions_data):
                 self.db.add(
                     Question(
@@ -220,4 +257,7 @@ class MaterialService:
                     )
                 )
         except Exception as e:
-            logger.warning("生成考核题失败，章节仍会创建: %s", e)
+            logger.warning(
+                "生成考核题失败，章节仍会创建。请检查 OPENAI_API_KEY、pdfplumber 及文档是否可提取文本。异常: %s",
+                e,
+            )

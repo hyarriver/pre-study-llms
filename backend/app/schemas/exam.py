@@ -95,6 +95,13 @@ class ExamRecordDetail(ExamRecordResponse):
     details: Optional[List[AnswerDetail]] = None
 
 
+class ChapterExamInfo(BaseModel):
+    """章节考核信息（免鉴权，仅是否有题与题数）"""
+    chapter_id: int
+    has_questions: bool
+    question_count: int
+
+
 class ChapterExamStatus(BaseModel):
     """章节考试状态"""
     chapter_id: int

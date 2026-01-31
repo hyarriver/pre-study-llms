@@ -16,7 +16,7 @@ import NotebookViewer from '@/components/NotebookViewer'
 import { createMarkdownComponents } from '@/components/MarkdownComponents'
 import { ArrowLeft, CheckCircle2, LogIn, Clock, BookMarked, ClipboardList, Trophy, FileText, Download, ExternalLink } from 'lucide-react'
 import ExamPanel from '@/components/ExamPanel'
-import { useExamStatus } from '@/hooks/useExam'
+import { useExamStatus, useChapterExamInfo } from '@/hooks/useExam'
 import { notebookApi } from '@/api/notebook'
 
 export default function ChapterDetail() {
@@ -32,7 +32,8 @@ export default function ChapterDetail() {
   const hasReadme = !!chapter?.readme_path
   const { data: notebookContent, isLoading: notebookLoading } = useNotebookContent(chapterId, hasNotebook)
   const { data: readmeData, isLoading: readmeLoading } = useReadme(chapterId, hasReadme)
-  const { data: examStatus } = useExamStatus(chapterId)
+  const { data: examStatus } = useExamStatus(chapterId, { enabled: isAuth })
+  const { data: examInfo } = useChapterExamInfo(chapterId, { enabled: !isAuth })
   const updateProgress = useUpdateProgress()
 
   // 学习时长追踪
@@ -105,11 +106,12 @@ export default function ChapterDetail() {
   }, [readProgress, chapter?.completion_percentage, chapter?.id, isAuth])
 
   const hasDocument = !!chapter?.pdf_path
+  const hasExamQuestions = (examStatus?.has_questions ?? examInfo?.has_questions) ?? false
   const validTabs = [
     hasNotebook && 'notebook',
     hasReadme && 'readme',
     hasDocument && 'pdf',
-    examStatus?.has_questions && 'exam',
+    hasExamQuestions && 'exam',
   ].filter(Boolean) as string[]
 
   // 文档学习型章节默认显示文档标签；确保 activeTab 对应存在的标签（须在 return 前，保持 hooks 顺序）
