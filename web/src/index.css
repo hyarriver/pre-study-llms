@@ -25,12 +25,9 @@
     --input: 216 34% 17%;
     --ring: 210 100% 60%;
     --radius: 0.75rem;
-    /* Apple 风格毛玻璃 */
-    --glass-bg: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 20px;
-    --glass-nav-bg: rgba(255, 255, 255, 0.06);
-    --glass-nav-blur: 24px;
+    /* 卡片/面板：与深色背景一致的实色，无毛玻璃 */
+    --surface: 224 71% 7%;
+    --surface-border: 216 34% 17%;
   }
 }
 
@@ -120,53 +117,36 @@
   animation: gradient-shift 3s ease infinite;
 }
 
-/* Apple 风格毛玻璃面板 */
+/* 实色面板（与深色主题统一，保留类名兼容） */
 .glass-panel {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .glass-panel:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: hsl(var(--border));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* 导航用毛玻璃（更强模糊、更淡底） */
+/* 导航栏：同主题实色 */
 .glass-nav {
-  background: var(--glass-nav-bg);
-  -webkit-backdrop-filter: blur(var(--glass-nav-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-nav-blur)) saturate(180%);
-  border-color: var(--glass-border);
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .glass-panel,
-  .glass-card,
-  .glass-nav,
-  .feature-card {
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    backdrop-filter: blur(12px) saturate(150%);
-  }
-}
-
-/* 玻璃效果卡片（统一使用设计变量，兼容旧类名） */
+/* 实色卡片（与 glass-panel 一致） */
 .glass-card {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-color: hsl(var(--border));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* 渐变文字 */
@@ -189,20 +169,18 @@
   transform: translateY(-2px);
 }
 
-/* 特性卡片（毛玻璃风格，与 glass-panel 一致） */
+/* 特性卡片（与 glass-panel 一致的实色） */
 .feature-card {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .feature-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: hsl(var(--border));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 /* 代码高亮样式优化 */

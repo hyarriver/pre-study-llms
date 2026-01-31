@@ -44,7 +44,7 @@ export default function MobileMenu() {
       {/* 移动端菜单遮罩层 */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 bg-black/60 md:hidden"
           onClick={() => setIsOpen(false)}
           style={{ zIndex: 9998 }}
         />
@@ -53,7 +53,7 @@ export default function MobileMenu() {
       {/* 移动端菜单面板 */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-80 max-w-[85vw] glass-nav border-l border-white/10 md:hidden transform transition-transform duration-300 ease-in-out',
+          'fixed top-0 right-0 h-full w-80 max-w-[85vw] glass-nav border-l border-border md:hidden transform transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         style={{ zIndex: 9999 }}
@@ -66,7 +66,7 @@ export default function MobileMenu() {
             </span>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg hover:bg-muted active:bg-muted/80 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="关闭菜单"
             >
               <X className="h-5 w-5" />
@@ -87,7 +87,7 @@ export default function MobileMenu() {
                     'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors touch-manipulation min-h-[44px] active:scale-[0.98]',
                     isActive
                       ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'hover:bg-white/10 active:bg-white/20 text-foreground'
+                      : 'hover:bg-muted active:bg-muted/80 text-foreground'
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
@@ -97,7 +97,7 @@ export default function MobileMenu() {
             })}
 
             {/* 用户信息区域 */}
-            <div className="pt-4 mt-4 border-t border-white/10">
+            <div className="pt-4 mt-4 border-t border-border">
               {isAuth ? (
                 <>
                   <div className="flex items-center space-x-3 px-4 py-3 mb-2">
@@ -128,7 +128,7 @@ export default function MobileMenu() {
                     'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors touch-manipulation min-h-[44px] active:scale-[0.98]',
                     location.pathname === '/login'
                       ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'hover:bg-white/10 active:bg-white/20 text-foreground'
+                      : 'hover:bg-muted active:bg-muted/80 text-foreground'
                   )}
                 >
                   <LogIn className="h-5 w-5 flex-shrink-0" />
@@ -147,7 +147,7 @@ export default function MobileMenu() {
       {/* 汉堡菜单按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden p-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center relative z-30"
+        className="md:hidden p-2 rounded-lg hover:bg-muted active:bg-muted/80 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center relative z-30"
         aria-label="菜单"
       >
         {isOpen ? (

@@ -29,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className={`min-h-screen ${isHomePage ? '' : 'bg-background'}`}>
-      <header className="glass-nav border-b border-white/10 sticky top-0 z-30" style={{ zIndex: 30 }}>
+      <header className="glass-nav border-b border-border sticky top-0 z-30" style={{ zIndex: 30 }}>
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2 group flex-shrink-0 touch-manipulation min-h-[44px]">
@@ -119,7 +119,7 @@ export default function Layout({ children }: LayoutProps) {
       <main className={isHomePage ? '' : 'container mx-auto px-4 sm:px-6 py-4 sm:py-8'}>
         {children}
       </main>
-      <footer className="glass-nav border-t border-white/10 relative z-20">
+      <footer className="glass-nav border-t border-border relative z-20">
         <div className="container mx-auto px-4 py-4 sm:py-6 text-center text-xs sm:text-sm text-muted-foreground">
           <p>《动手学大模型》系列编程实践教程 · 上海交通大学</p>
         </div>
