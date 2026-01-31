@@ -31,21 +31,28 @@ def _get_base_dir() -> Path:
     return backend_dir
 
 
+def _get_uploads_base() -> Path:
+    """获取上传根目录（使用 data/uploads，Docker 中 data 挂载可写）"""
+    base = _get_base_dir()
+    subdir = getattr(settings, "UPLOADS_SUBDIR", "data/uploads")
+    return base / subdir
+
+
 class MaterialService:
     """材料提交与审核服务"""
 
     def __init__(self, db: Session):
         self.db = db
         self.base_dir = _get_base_dir()
-        self.uploads_dir = self.base_dir / "documents" / "uploads"
-        self.pending_dir = self.uploads_dir / "pending"
+        self.uploads_base = _get_uploads_base()
+        self.pending_dir = self.uploads_base / "pending"
 
     def _ensure_upload_dirs(self):
         """确保上传目录存在"""
         try:
             self.pending_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error("无法创建上传目录 %s: %s（请检查挂载是否为只读）", self.pending_dir, e)
+            logger.error("无法创建上传目录 %s: %s（请检查目录权限）", self.pending_dir, e)
             raise
 
     def submit(
@@ -78,8 +85,9 @@ class MaterialService:
         dest_file = dest_dir / f"document{file_ext}"
         shutil.copy2(file_path, dest_file)
 
-        # 相对路径，便于跨环境
-        rel_path = f"documents/uploads/pending/{submission.id}/document{file_ext}"
+        # 相对路径（data/uploads 在 Docker 中可写）
+        subdir = getattr(settings, "UPLOADS_SUBDIR", "data/uploads")
+        rel_path = f"{subdir}/pending/{submission.id}/document{file_ext}"
         submission.file_path = rel_path
         self.db.commit()
         self.db.refresh(submission)

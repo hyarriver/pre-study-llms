@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
 将指定用户设置为管理员。用法:
-  python scripts/set_admin.py <username>
-  python scripts/set_admin.py <user_id>
+  python3 scripts/set_admin.py <username>
+  python3 scripts/set_admin.py <user_id>
 
-需要从项目根目录运行，或设置 PYTHONPATH 包含 backend 目录。
+Docker 部署时在容器内执行:
+  docker exec -it dive-into-llms-backend python -c "..."
+
+需要从项目根目录运行。
 """
 import sys
 import os

@@ -61,11 +61,17 @@ async def submit_material(
         )
         return submission
     except OSError as e:
-        logger.exception("上传文件保存失败（可能是目录权限）: %s", e)
-        raise HTTPException(status_code=500, detail="无法保存上传文件，请检查服务器配置或联系管理员")
+        logger.exception("上传文件保存失败: %s", e)
+        raise HTTPException(status_code=500, detail=f"无法保存上传文件: {str(e)}")
     except Exception as e:
+        from sqlalchemy.exc import SQLAlchemyError
+        if isinstance(e, SQLAlchemyError):
+            logger.exception("数据库错误: %s", e)
+            raise HTTPException(status_code=500, detail="数据库操作失败，请检查服务是否已正确初始化")
         logger.exception("材料提交失败: %s", e)
-        raise
+        if settings.DEBUG:
+            raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="服务器内部错误，请稍后重试")
     finally:
         tmp_path.unlink(missing_ok=True)
 

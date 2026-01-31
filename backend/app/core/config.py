@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # 上传配置
     MAX_UPLOAD_SIZE_MB: int = 20
     ALLOWED_UPLOAD_EXTENSIONS: list = [".pdf", ".docx"]
+    # 上传目录：data/uploads 可写（Docker 中 data 挂载可写），documents 可能只读
+    UPLOADS_SUBDIR: str = "data/uploads"
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
