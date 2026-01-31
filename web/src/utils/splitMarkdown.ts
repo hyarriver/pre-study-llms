@@ -1,6 +1,6 @@
 /**
  * Markdown 分页工具
- * 将过长 Markdown 按语义边界拆分为多页，提升阅读体验
+ * 将过长 Markdown 按行数拆分为多页，提升阅读体验
  */
 
 /**
@@ -8,16 +8,18 @@
  * - 尽量在语义边界切分：##、###、段落空行
  * - 不在代码块（```）内部切分
  * @param content 原始 Markdown 文本
- * @param linesPerPage 每页目标行数，默认 60
+ * @param linesPerPage 每页目标行数，默认 50
  * @returns 分页后的 Markdown 块数组
  */
 export function splitMarkdownIntoPages(
   content: string,
-  linesPerPage = 60
+  linesPerPage = 50
 ): string[] {
   if (!content?.trim()) return ['']
 
-  const lines = content.split('\n')
+  // 统一换行符，避免 Windows \r\n 影响行数
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const lines = normalized.split('\n')
 
   // 若总行数不超过阈值，直接返回单页
   if (lines.length <= linesPerPage) {
@@ -46,7 +48,7 @@ export function splitMarkdownIntoPages(
   for (let i = 1; i < lines.length; i++) {
     if (inCodeBlock[i]) continue
     const line = lines[i]
-    const isHeading = /^#{2,3}\s/.test(line)
+    const isHeading = /^#{1,3}\s/.test(line) // 支持 #、##、###
     const isEmpty = line.trim() === ''
     if (isHeading || isEmpty) {
       splitCandidates.push(i)
