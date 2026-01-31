@@ -111,9 +111,40 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
     )
   }
 
+  const paginationBar = totalCells > 0 && (
+    <div className="flex items-center justify-center gap-3 flex-wrap py-3 px-4 rounded-xl bg-muted/60 border border-border/80 shadow-sm">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        disabled={currentPage <= 1}
+        className="gap-1 shrink-0"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        上一页
+      </Button>
+      <span className="text-sm font-medium text-foreground min-w-[10rem] text-center">
+        第 {currentPage} / {totalPages} 页，共 {totalCells} 节
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        disabled={currentPage >= totalPages}
+        className="gap-1 shrink-0"
+      >
+        下一页
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+
   return (
     <>
-      <div className="space-y-3 sm:space-y-4">
+      {/* 顶部分页：打开即见，无需滚到底 */}
+      {paginationBar}
+
+      <div className="space-y-3 sm:space-y-4 mt-4">
         {visibleCells.map((cell, idx) => {
           const index = (currentPage - 1) * PAGE_SIZE + idx
           return (
@@ -157,34 +188,8 @@ export default function NotebookViewer({ cells, chapterNumber }: NotebookViewerP
         })}
       </div>
 
-      {/* 分页栏：有内容时始终显示，便于用户看到页码与总量 */}
-      {totalCells > 0 && (
-        <div className="mt-6 flex items-center justify-center gap-3 flex-wrap border-t pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage <= 1}
-            className="gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            上一页
-          </Button>
-          <span className="text-sm text-muted-foreground min-w-[8rem] text-center">
-            第 {currentPage} / {totalPages} 页，共 {totalCells} 节
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage >= totalPages}
-            className="gap-1"
-          >
-            下一页
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      {/* 底部分页栏：与顶部样式一致，更醒目 */}
+      {paginationBar}
 
       {/* 图片模态框 */}
       {modalImage && (
