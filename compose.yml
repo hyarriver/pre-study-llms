@@ -20,8 +20,8 @@ services:
       - WEBHOOK_SECRET=${WEBHOOK_SECRET:-}
       - BASE_DIR=/app
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:https://open.bigmodel.cn/api/paas/v4}
+      - OPENAI_MODEL=${OPENAI_MODEL:glm-4.6v}
     volumes:
       # 挂载数据库文件目录
       - ./backend/data:/app/data

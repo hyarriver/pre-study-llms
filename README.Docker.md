@@ -176,11 +176,76 @@ docker inspect dive-into-llms-backend | grep -A 10 Health
 
 7. **数据库初始化失败**: 检查 `backend/data/` 目录权限
 
+### 考核题无法生成（补生成失败）与后端日志
+
+补生成时若未生成任何题目，接口会返回 400 并提示「考核题未生成。请检查:1)...」。常见原因有三类，后端会打 **warning** 日志，可在服务器上按下面方式查日志定位。
+
+**一、为什么无法生成考核题？**
+
+1. **未配置 OPENAI_API_KEY（最常见）**
+   - 逻辑：`backend/app/services/exam_generator.py` 中 `_call_llm()` 读取 `OPENAI_API_KEY`，若为空则直接返回空列表，不调用 LLM。
+   - 日志关键字：`未设置 OPENAI_API_KEY，跳过考核题生成`
+   - 处理：在运行后端的环境中配置 `OPENAI_API_KEY`（及可选 `OPENAI_BASE_URL`、`OPENAI_MODEL`）。Docker 在 compose 的 `environment` 或宿主机 `.env` 中设置；PM2/裸机在启动前 `export OPENAI_API_KEY=sk-xxx` 或写入 backend 目录下的 `.env`。
+
+2. **文档/Notebook 无有效文本**
+   - 逻辑：先从 PDF/DOCX 抽文本；若为空（如扫描版 PDF 且未装/未启用 OCR），则不打 LLM。
+   - 日志关键字：`文档无有效文本内容，无法生成考核题` 或 `从 Notebook 兜底生成考核题失败（章节 ...）`
+   - 处理：确认本章节 PDF 可复制文字，或安装/启用 OCR；确认 Notebook 已生成且非空。
+
+3. **LLM 调用失败或返回非 JSON**
+   - 逻辑：`client.chat.completions.create(...)` 抛异常，或返回内容解析不到合法 JSON 数组时返回空列表。
+   - 日志关键字：`LLM 调用失败` 或 `从文档生成考核题异常（章节 ...），将尝试从 Notebook 兜底`
+   - 处理：根据日志异常信息检查网络、API Key、配额或代理（OPENAI_BASE_URL）。
+
+补生成时题目数为 0 时，`material_service.py` 会抛出 ValueError，接口返回 400；上述 warning 会出现在**后端 stdout/stderr**，需在服务器上查看后端日志。
+
+**二、在服务器上如何查看后端日志？**
+
+后端由 uvicorn 启动，日志输出到 stdout/stderr。查看方式取决于部署方式。
+
+- **Docker（compose 部署）**  
+  容器名：`dive-into-llms-backend`（见 `compose.yml`）。
+  - 实时查看（推荐排查时用）：`docker logs -f dive-into-llms-backend`
+  - 最近 N 行：`docker logs --tail 200 dive-into-llms-backend`
+  - 带时间戳：`docker logs -f -t dive-into-llms-backend`  
+  若用 docker-compose 且服务名为 `backend`：`docker-compose logs -f backend` 或 `docker-compose logs -f`（所有服务）。
+
+- **PM2 部署（裸机或未用 Docker 时）**  
+  服务名：`dive-into-llms-api`（见 `scripts/start_service.sh`）。
+  - 实时查看：`pm2 logs dive-into-llms-api`
+  - 仅最近若干行：`pm2 logs dive-into-llms-api --lines 200`
+  - 仅 err 或 out：`pm2 logs dive-into-llms-api --err` / `pm2 logs dive-into-llms-api --out`
+
+**三、排查建议（按顺序）**
+
+1. 在对应环境（Docker 的 env 或 PM2 启动前的 shell/.env）中确认已配置 `OPENAI_API_KEY` 且无误。
+2. 触发一次「补生成」，同时在服务器上执行：Docker 用 `docker logs -f dive-into-llms-backend`，PM2 用 `pm2 logs dive-into-llms-api`，看是否出现上述任一 **WARNING**。
+3. 根据日志关键字（如「未设置 OPENAI_API_KEY」「文档无有效文本」「LLM 调用失败」）对应到上面三类原因并处理。
+
 ### 查看详细日志
 
 ```bash
-# 查看容器详细日志
-docker logs dive-into-llms-backend
+# Docker：实时查看容器输出（推荐排查时用）
+docker logs -f dive-into-llms-backend
+
+# 最近 200 行
+docker logs --tail 200 dive-into-llms-backend
+
+# 带时间戳
+docker logs -f -t dive-into-llms-backend
+
+# 若使用 docker-compose
+docker-compose logs -f backend
+```
+
+若使用 PM2 部署（见 `scripts/start_service.sh`）：
+
+```bash
+# 实时查看 stdout/stderr
+pm2 logs dive-into-llms-api
+
+# 仅最近 200 行
+pm2 logs dive-into-llms-api --lines 200
 ```
 
 ## 更新部署
