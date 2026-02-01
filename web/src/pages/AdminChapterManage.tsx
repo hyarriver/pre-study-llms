@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { chaptersApi, type ChapterUpdateBody } from '@/api/chapters'
 import { useAuthStore } from '@/store/authStore'
+import { getApiErrorMessage } from '@/lib/utils'
 import { useChapters } from '@/hooks/useChapters'
 import type { Chapter } from '@/types'
 import {
@@ -27,6 +28,7 @@ export default function AdminChapterManage() {
   const [editForm, setEditForm] = useState<ChapterUpdateBody>({})
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [regeneratingId, setRegeneratingId] = useState<number | null>(null)
+  const [regenerateError, setRegenerateError] = useState<string | null>(null)
 
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: number; body: ChapterUpdateBody }) =>
@@ -57,6 +59,10 @@ export default function AdminChapterManage() {
     mutationFn: (chapterId: number) => chaptersApi.regenerateContent(chapterId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters'] })
+      setRegenerateError(null)
+    },
+    onError: (err: unknown) => {
+      setRegenerateError(getApiErrorMessage(err, '补生成失败，请重试'))
     },
     onSettled: () => {
       setRegeneratingId(null)
@@ -137,6 +143,12 @@ export default function AdminChapterManage() {
       <p className="text-muted-foreground text-sm">
         编辑、排序或删除章节；变更后首页与教程列表将同步更新
       </p>
+
+      {regenerateError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {regenerateError}
+        </div>
+      )}
 
       {editingChapter && (
         <Card>
@@ -281,6 +293,7 @@ export default function AdminChapterManage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
+                            setRegenerateError(null)
                             setRegeneratingId(chapter.id)
                             regenerateMutation.mutate(chapter.id)
                           }}

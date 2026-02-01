@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { chaptersApi, type ChapterUpdateBody } from '@/api/chapters'
 import { useAuthStore } from '@/store/authStore'
+import { getApiErrorMessage } from '@/lib/utils'
 import { useChapters } from '@/hooks/useChapters'
 import type { MaterialSubmissionWithUser, Chapter } from '@/types'
 import {
@@ -36,6 +37,7 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState<ChapterUpdateBody>({})
   const [deletingChapterId, setDeletingChapterId] = useState<number | null>(null)
   const [deletingSubmissionId, setDeletingSubmissionId] = useState<number | null>(null)
+  const [regenerateError, setRegenerateError] = useState<string | null>(null)
 
   const { data: pending = [], isLoading: pendingLoading } = useQuery({
     queryKey: ['admin-pending'],
@@ -108,6 +110,10 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters'] })
       queryClient.invalidateQueries({ queryKey: ['chapter'] })
+      setRegenerateError(null)
+    },
+    onError: (err: unknown) => {
+      setRegenerateError(getApiErrorMessage(err, '补生成失败，请重试'))
     },
   })
 
@@ -578,6 +584,11 @@ export default function AdminPage() {
               <CardDescription className="leading-relaxed">共 {chapters.length} 章，可编辑、调整顺序或删除</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
+              {regenerateError && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive mb-4">
+                  {regenerateError}
+                </div>
+              )}
               {chaptersLoading ? (
                 <p className="text-muted-foreground text-sm leading-relaxed py-6">加载中...</p>
               ) : chapters.length === 0 ? (
@@ -629,7 +640,10 @@ export default function AdminPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => regenerateMutation.mutate(chapter.id)}
+                              onClick={() => {
+                                setRegenerateError(null)
+                                regenerateMutation.mutate(chapter.id)
+                              }}
                               disabled={regenerateMutation.isPending}
                               className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                               title="补生成 README、Notebook、考核题"
