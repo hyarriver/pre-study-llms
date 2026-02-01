@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -38,6 +38,14 @@ export default function AdminPage() {
   const [deletingChapterId, setDeletingChapterId] = useState<number | null>(null)
   const [deletingSubmissionId, setDeletingSubmissionId] = useState<number | null>(null)
   const [regenerateError, setRegenerateError] = useState<string | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
+  const editFormRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (editingChapter && editFormRef.current) {
+      editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [editingChapter])
 
   const { data: pending = [], isLoading: pendingLoading } = useQuery({
     queryKey: ['admin-pending'],
@@ -140,6 +148,7 @@ export default function AdminPage() {
   }
 
   const startEdit = (chapter: Chapter) => {
+    setEditError(null)
     setEditingChapter(chapter)
     setEditForm({
       title: chapter.title,
@@ -153,8 +162,14 @@ export default function AdminPage() {
 
   const submitEdit = () => {
     if (!editingChapter) return
+    const title = (editForm.title ?? '').trim()
+    if (!title) {
+      setEditError('请填写名称（标题）')
+      return
+    }
+    setEditError(null)
     const body: ChapterUpdateBody = {}
-    if (editForm.title !== undefined) body.title = editForm.title
+    body.title = title
     if (editForm.description !== undefined) body.description = editForm.description
     if (editForm.chapter_number !== undefined) body.chapter_number = editForm.chapter_number
     if (editForm.notebook_path !== undefined) body.notebook_path = editForm.notebook_path || null
@@ -475,9 +490,12 @@ export default function AdminPage() {
 
         <TabsContent value="chapters" className="mt-6">
           {editingChapter && (
-            <Card variant="glass" className="mb-6 overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-xl">编辑章节</CardTitle>
+            <div ref={editFormRef} className="mb-6">
+              <Card variant="glass" className="overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-xl">
+                    编辑章节：#{editingChapter.chapter_number} {editingChapter.title}
+                  </CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -491,6 +509,11 @@ export default function AdminPage() {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
+                {editError && (
+                  <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {editError}
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground block">序号</label>
                   <Input
@@ -507,9 +530,10 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground block">标题</label>
+                  <label className="text-sm font-medium text-foreground block">名称</label>
                   <Input
                     className="rounded-lg"
+                    placeholder="章节名称"
                     value={editForm.title ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
                   />
@@ -518,6 +542,7 @@ export default function AdminPage() {
                   <label className="text-sm font-medium text-foreground block">简介</label>
                   <Input
                     className="rounded-lg"
+                    placeholder="章节简介（可选）"
                     value={editForm.description ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                   />
@@ -573,6 +598,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
           <Card variant="glass" className="overflow-hidden">
