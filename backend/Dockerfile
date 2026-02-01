@@ -21,12 +21,13 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's|http://security.debian.org|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list; \
     fi
 
-# 安装系统依赖：gcc（编译）、Tesseract OCR（扫描件识别）、poppler-utils（pdf2image）
+# 安装系统依赖：gcc（编译）、Tesseract OCR（扫描件识别）、poppler-utils（pdf2image）、pandoc（Markdown→DOCX）
 RUN apt-get update && apt-get install -y \
     gcc \
     tesseract-ocr \
     tesseract-ocr-chi-sim \
     poppler-utils \
+    pandoc \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
@@ -38,8 +39,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY . .
 
-# 创建数据库目录（如果使用 SQLite）
-RUN mkdir -p /app/data
+# 创建数据库目录与 convert 流水线目录（如果使用 SQLite）
+RUN mkdir -p /app/data /app/data/convert/uploads /app/data/convert/temp /app/data/convert/outputs
 
 # 暴露端口
 EXPOSE 8000

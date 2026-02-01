@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     ALLOWED_UPLOAD_EXTENSIONS: list = [".pdf", ".docx"]
     # 上传目录：data/uploads 可写（Docker 中 data 挂载可写），documents 可能只读
     UPLOADS_SUBDIR: str = "data/uploads"
+
+    # PDF AI 流水线（marker → LLM → pandoc）
+    CONVERT_UPLOADS_DIR: str = "data/convert/uploads"
+    CONVERT_TEMP_DIR: str = "data/convert/temp"
+    CONVERT_OUTPUTS_DIR: str = "data/convert/outputs"
+    LLM_TIMEOUT_SECONDS: int = 120
+    LLM_MAX_RETRIES: int = 2
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
