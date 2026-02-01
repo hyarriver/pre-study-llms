@@ -7,11 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { useAuthStore } from '@/store/authStore'
 import type { MaterialSubmissionWithUser } from '@/types'
-import { FileText, Eye, CheckCircle2, XCircle } from 'lucide-react'
+import { FileText, Eye, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 export default function AdminMaterialReview() {
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
+  const [previewingId, setPreviewingId] = useState<number | null>(null)
   const [rejectingId, setRejectingId] = useState<number | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
@@ -41,6 +42,7 @@ export default function AdminMaterialReview() {
   })
 
   const handlePreview = async (s: MaterialSubmissionWithUser) => {
+    setPreviewingId(s.id)
     try {
       const { data } = await materialsApi.getPreview(s.id)
       const blob = new Blob([data], {
@@ -51,6 +53,8 @@ export default function AdminMaterialReview() {
       setTimeout(() => URL.revokeObjectURL(url), 60000)
     } catch (err) {
       console.error('预览失败:', err)
+    } finally {
+      setPreviewingId(null)
     }
   }
 
@@ -151,9 +155,18 @@ export default function AdminMaterialReview() {
                         variant="outline"
                         size="sm"
                         onClick={() => handlePreview(s)}
+                        disabled={previewingId !== null}
                         className="gap-1"
                       >
-                        <Eye className="h-4 w-4" /> 预览
+                        {previewingId === s.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" /> 加载中…
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4" /> 预览
+                          </>
+                        )}
                       </Button>
                       <Button
                         size="sm"
@@ -161,7 +174,15 @@ export default function AdminMaterialReview() {
                         disabled={approveMutation.isPending}
                         className="gap-1 bg-green-600 hover:bg-green-700"
                       >
-                        <CheckCircle2 className="h-4 w-4" /> 通过
+                        {approveMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" /> 通过中…
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" /> 通过
+                          </>
+                        )}
                       </Button>
                       <Button
                         variant="destructive"
@@ -170,7 +191,15 @@ export default function AdminMaterialReview() {
                         disabled={rejectMutation.isPending}
                         className="gap-1"
                       >
-                        <XCircle className="h-4 w-4" /> 驳回
+                        {rejectMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" /> 驳回中…
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4" /> 驳回
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -183,8 +212,19 @@ export default function AdminMaterialReview() {
                         onChange={(e) => setRejectReason(e.target.value)}
                       />
                       <div className="flex gap-2">
-                        <Button size="sm" variant="destructive" onClick={handleRejectConfirm}>
-                          确认驳回
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={handleRejectConfirm}
+                          disabled={rejectMutation.isPending}
+                        >
+                          {rejectMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-1" /> 驳回中…
+                            </>
+                          ) : (
+                            '确认驳回'
+                          )}
                         </Button>
                         <Button
                           size="sm"

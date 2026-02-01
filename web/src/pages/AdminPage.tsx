@@ -26,17 +26,20 @@ import {
   Save,
   FolderOpen,
   RefreshCw,
+  Loader2,
 } from 'lucide-react'
 
 export default function AdminPage() {
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
+  const [previewingId, setPreviewingId] = useState<number | null>(null)
   const [rejectingId, setRejectingId] = useState<number | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null)
   const [editForm, setEditForm] = useState<ChapterUpdateBody>({})
   const [deletingChapterId, setDeletingChapterId] = useState<number | null>(null)
   const [deletingSubmissionId, setDeletingSubmissionId] = useState<number | null>(null)
+  const [regeneratingChapterId, setRegeneratingChapterId] = useState<number | null>(null)
   const [regenerateError, setRegenerateError] = useState<string | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
   const editFormRef = useRef<HTMLDivElement>(null)
@@ -123,9 +126,13 @@ export default function AdminPage() {
     onError: (err: unknown) => {
       setRegenerateError(getApiErrorMessage(err, '补生成失败，请重试'))
     },
+    onSettled: () => {
+      setRegeneratingChapterId(null)
+    },
   })
 
   const handlePreview = async (s: MaterialSubmissionWithUser) => {
+    setPreviewingId(s.id)
     try {
       const { data } = await materialsApi.getPreview(s.id)
       const blob = new Blob([data], {
@@ -139,6 +146,8 @@ export default function AdminPage() {
       setTimeout(() => URL.revokeObjectURL(url), 60000)
     } catch (err) {
       console.error('预览失败:', err)
+    } finally {
+      setPreviewingId(null)
     }
   }
 
@@ -298,8 +307,22 @@ export default function AdminPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 transition-opacity hover:opacity-90">
-                            <Eye className="h-4 w-4" /> 预览
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePreview(s)}
+                            disabled={previewingId !== null}
+                            className="gap-1 transition-opacity hover:opacity-90"
+                          >
+                            {previewingId === s.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" /> 加载中…
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-4 w-4" /> 预览
+                              </>
+                            )}
                           </Button>
                           <Button
                             size="sm"
@@ -307,7 +330,15 @@ export default function AdminPage() {
                             disabled={approveMutation.isPending}
                             className="gap-1 bg-green-600 hover:bg-green-700 text-white transition-opacity"
                           >
-                            <CheckCircle2 className="h-4 w-4" /> 通过
+                            {approveMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" /> 通过中…
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="h-4 w-4" /> 通过
+                              </>
+                            )}
                           </Button>
                           <Button
                             variant="destructive"
@@ -316,7 +347,15 @@ export default function AdminPage() {
                             disabled={rejectMutation.isPending}
                             className="gap-1 transition-opacity hover:opacity-90"
                           >
-                            <XCircle className="h-4 w-4" /> 驳回
+                            {rejectMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" /> 驳回中…
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-4 w-4" /> 驳回
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -329,8 +368,20 @@ export default function AdminPage() {
                             onChange={(e) => setRejectReason(e.target.value)}
                           />
                           <div className="flex gap-2">
-                            <Button size="sm" variant="destructive" onClick={handleRejectConfirm} className="rounded-lg">
-                              确认驳回
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={handleRejectConfirm}
+                              disabled={rejectMutation.isPending}
+                              className="rounded-lg gap-1"
+                            >
+                              {rejectMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" /> 驳回中…
+                                </>
+                              ) : (
+                                '确认驳回'
+                              )}
                             </Button>
                             <Button
                               size="sm"
@@ -419,8 +470,22 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                           {s.status === 'pending' && (
                             <>
-                              <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 rounded-lg transition-opacity hover:opacity-90">
-                                <Eye className="h-4 w-4" /> 预览
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePreview(s)}
+                                disabled={previewingId !== null}
+                                className="gap-1 rounded-lg transition-opacity hover:opacity-90"
+                              >
+                                {previewingId === s.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> 加载中…
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-4 w-4" /> 预览
+                                  </>
+                                )}
                               </Button>
                               <Button
                                 size="sm"
@@ -428,7 +493,15 @@ export default function AdminPage() {
                                 disabled={approveMutation.isPending}
                                 className="gap-1 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-opacity"
                               >
-                                <CheckCircle2 className="h-4 w-4" /> 通过
+                                {approveMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> 通过中…
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle2 className="h-4 w-4" /> 通过
+                                  </>
+                                )}
                               </Button>
                               <Button
                                 variant="destructive"
@@ -437,13 +510,35 @@ export default function AdminPage() {
                                 disabled={rejectMutation.isPending}
                                 className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                               >
-                                <XCircle className="h-4 w-4" /> 驳回
+                                {rejectMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> 驳回中…
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-4 w-4" /> 驳回
+                                  </>
+                                )}
                               </Button>
                             </>
                           )}
                           {s.status !== 'pending' && (
-                            <Button variant="outline" size="sm" onClick={() => handlePreview(s)} className="gap-1 rounded-lg transition-opacity hover:opacity-90">
-                              <Eye className="h-4 w-4" /> 预览
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePreview(s)}
+                              disabled={previewingId !== null}
+                              className="gap-1 rounded-lg transition-opacity hover:opacity-90"
+                            >
+                              {previewingId === s.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" /> 加载中…
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-4 w-4" /> 预览
+                                </>
+                              )}
                             </Button>
                           )}
                           {deletingSubmissionId === s.id ? (
@@ -453,9 +548,15 @@ export default function AdminPage() {
                                 variant="destructive"
                                 onClick={() => adminDeleteSubmissionMutation.mutate(s.id)}
                                 disabled={adminDeleteSubmissionMutation.isPending}
-                                className="rounded-lg"
+                                className="rounded-lg gap-1"
                               >
-                                确认删除
+                                {adminDeleteSubmissionMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> 删除中…
+                                  </>
+                                ) : (
+                                  '确认删除'
+                                )}
                               </Button>
                               <Button
                                 size="sm"
@@ -583,7 +684,15 @@ export default function AdminPage() {
                     disabled={updateChapterMutation.isPending}
                     className="gap-1 rounded-lg"
                   >
-                    <Save className="h-4 w-4" /> 保存
+                    {updateChapterMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" /> 保存中…
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" /> 保存
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="outline"
@@ -637,22 +746,30 @@ export default function AdminPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-lg transition-opacity hover:opacity-90"
+                            className="rounded-lg transition-opacity hover:opacity-90 gap-0"
                             onClick={() => moveChapter(index, 'up')}
                             disabled={index === 0 || reorderMutation.isPending}
                             title="上移"
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            {reorderMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ChevronUp className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-lg transition-opacity hover:opacity-90"
+                            className="rounded-lg transition-opacity hover:opacity-90 gap-0"
                             onClick={() => moveChapter(index, 'down')}
                             disabled={index === chapters.length - 1 || reorderMutation.isPending}
                             title="下移"
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            {reorderMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="outline"
@@ -668,13 +785,22 @@ export default function AdminPage() {
                               size="sm"
                               onClick={() => {
                                 setRegenerateError(null)
+                                setRegeneratingChapterId(chapter.id)
                                 regenerateMutation.mutate(chapter.id)
                               }}
                               disabled={regenerateMutation.isPending}
                               className="gap-1 rounded-lg transition-opacity hover:opacity-90"
                               title="补生成 README、Notebook、考核题"
                             >
-                              <RefreshCw className="h-4 w-4" /> 补生成
+                              {regeneratingChapterId === chapter.id && regenerateMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" /> 补生成中…
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4" /> 补生成
+                                </>
+                              )}
                             </Button>
                           )}
                           <Button
@@ -701,9 +827,15 @@ export default function AdminPage() {
                             variant="destructive"
                             onClick={() => deleteChapterMutation.mutate(chapter.id)}
                             disabled={deleteChapterMutation.isPending}
-                            className="rounded-lg"
+                            className="rounded-lg gap-1"
                           >
-                            确认删除
+                            {deleteChapterMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" /> 删除中…
+                              </>
+                            ) : (
+                              '确认删除'
+                            )}
                           </Button>
                           <Button
                             size="sm"

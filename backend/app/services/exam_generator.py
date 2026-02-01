@@ -430,14 +430,16 @@ def generate_notebook_from_document(
     if not material.strip():
         logger.warning("文档无有效文本内容，跳过 Notebook 生成")
         return None
-    if len(material) > MAX_NOTEBOOK_MATERIAL_CHARS:
-        material = material[:MAX_NOTEBOOK_MATERIAL_CHARS] + "\n\n[内容已截断]"
 
-    # 超长文档优先用 fallback 保证完整性，LLM 易截断
+    # 超长文档优先用 fallback、且使用完整原文，避免「内容已截断」
     FALLBACK_THRESHOLD = 25000
     if len(material) > FALLBACK_THRESHOLD:
         logger.info("文档较长(%d 字)，使用正文切分生成以保证完整", len(material))
         return _material_to_cells_fallback(material, title, description)
+
+    # 短文档走 LLM；仅在此路径按上下文限制截断
+    if len(material) > MAX_NOTEBOOK_MATERIAL_CHARS:
+        material = material[:MAX_NOTEBOOK_MATERIAL_CHARS] + "\n\n[内容已截断]"
 
     # 尝试 LLM 生成
     try:

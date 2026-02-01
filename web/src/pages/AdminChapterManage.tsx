@@ -18,6 +18,7 @@ import {
   X,
   Save,
   RefreshCw,
+  Loader2,
 } from 'lucide-react'
 
 export default function AdminChapterManage() {
@@ -218,7 +219,15 @@ export default function AdminChapterManage() {
                 disabled={updateMutation.isPending}
                 className="gap-1"
               >
-                <Save className="h-4 w-4" /> 保存
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> 保存中…
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" /> 保存
+                  </>
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -265,20 +274,30 @@ export default function AdminChapterManage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="gap-0"
                         onClick={() => moveChapter(index, 'up')}
                         disabled={index === 0 || reorderMutation.isPending}
                         title="上移"
                       >
-                        <ChevronUp className="h-4 w-4" />
+                        {reorderMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
+                        className="gap-0"
                         onClick={() => moveChapter(index, 'down')}
                         disabled={index === chapters.length - 1 || reorderMutation.isPending}
                         title="下移"
                       >
-                        <ChevronDown className="h-4 w-4" />
+                        {reorderMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button
                         variant="outline"
@@ -301,12 +320,15 @@ export default function AdminChapterManage() {
                           className="gap-1"
                           title="补生成 README、Notebook、考核题"
                         >
-                          {regeneratingId === chapter.id ? (
-                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          {regeneratingId === chapter.id && regenerateMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" /> 补生成中…
+                            </>
                           ) : (
-                            <RefreshCw className="h-4 w-4" />
+                            <>
+                              <RefreshCw className="h-4 w-4" /> 补生成
+                            </>
                           )}
-                          补生成
                         </Button>
                       )}
                       <Button
@@ -333,8 +355,15 @@ export default function AdminChapterManage() {
                         variant="destructive"
                         onClick={() => confirmDelete(chapter.id)}
                         disabled={deleteMutation.isPending}
+                        className="gap-1"
                       >
-                        确认删除
+                        {deleteMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" /> 删除中…
+                          </>
+                        ) : (
+                          '确认删除'
+                        )}
                       </Button>
                       <Button
                         size="sm"

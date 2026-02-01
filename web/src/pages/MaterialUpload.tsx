@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { materialsApi } from '@/api/materials'
 import { useAuthStore } from '@/store/authStore'
 import { getApiErrorMessage } from '@/lib/utils'
-import { Upload, FileText, Clock, CheckCircle2, XCircle, Trash2 } from 'lucide-react'
+import { Upload, FileText, Clock, CheckCircle2, XCircle, Trash2, Loader2 } from 'lucide-react'
 
 export default function MaterialUpload() {
   const queryClient = useQueryClient()
@@ -152,8 +152,16 @@ export default function MaterialUpload() {
               </div>
             )}
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={submitMutation.isPending}>
-              {submitMutation.isPending ? '提交中...' : '提交审核'}
+            <Button type="submit" disabled={submitMutation.isPending} className="gap-1">
+              {submitMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> 提交中…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" /> 提交审核
+                </>
+              )}
             </Button>
           </form>
         </CardContent>
@@ -219,12 +227,17 @@ export default function MaterialUpload() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive gap-0"
                       onClick={() => deleteMutation.mutate(s.id)}
                       disabled={deleteMutation.isPending}
-                      title="删除"
+                      title={deleteMutation.isPending ? '删除中…' : '删除'}
+                      aria-label={deleteMutation.isPending ? '删除中' : '删除'}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deleteMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </li>
